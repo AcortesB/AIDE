@@ -1,7 +1,7 @@
 
-INSERT INTO user_aide (name, password) VALUES ('John Doe', 'aaaa1');
-INSERT INTO user_aide (name, password) VALUES ('Sarah Castello', 'bbbb2');
-INSERT INTO user_aide (name, password) VALUES ('Allan Poe', 'cccc3');
+INSERT INTO user_aide (name, username, password) VALUES ('John Doe', 'JD','$2b$12$wrZEdyBI4o5Tf1R9.gKrb.k1VfTmurtUEbgjAhOWCnlfiXTUzDE1O');
+INSERT INTO user_aide (name, username, password) VALUES ('Sarah Castello','SC', '$2b$12$Itxz5DwBPiJ7Ypi65.YtkeRN2Bnk7vlMhLZZkdNFuiGJM.TdD/CK6');
+INSERT INTO user_aide (name, username, password) VALUES ('Allan Poe','AP','$2b$12$mPcnbGWmbm7X3Tui7MLsoOrCemeK8K5WM85wl6Ri8ASqmrft985wm');
 
 
 INSERT INTO tutor (id) VALUES (1);

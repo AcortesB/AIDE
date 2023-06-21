@@ -11,7 +11,18 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from passlib.context import CryptContext
 from jose import JWTError, jwt
 from datetime import datetime, timedelta
-import models 
+import models
+from passlib.exc import UnknownHashError 
+
+# to get a string like this run:
+# openssl rand -hex 32
+SECRET_KEY = "fdcf52297b623feba78938581959dae1d9a1b570816af66ec9fbcc690f5c5c46"
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 10080 #7 days
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 app=FastAPI()
 
@@ -25,8 +36,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+
 class User_aide(BaseModel):
     id: int
+    username: str
     name: str
     password: str
 
@@ -144,14 +161,88 @@ class SeniorActivity(BaseModel):
         orm_mode = True
 
 
+def verify_password(plain_password, hashed_password):
+    try:
+        return pwd_context.verify(plain_password, hashed_password)
+    except UnknownHashError:
+        return False
+        
+
+# no hago el hasheo de ninguna password, así que no hashea ninguna, por eso no la encuentra
+def get_password_hash(password):
+    return pwd_context.hash(password)
+
+
+def get_user(username: str):
+    user = db.query(models.User_aide).filter(models.User_aide.username == username).first()
+    if user:
+        return user
+
+    return None
+
+
+def authenticate_user(username: str, password: str):
+    user = get_user(username)
+    if not user:
+        return False
+    if not verify_password(password, user.password):
+        return False
+    return user
+
+
+def create_access_token(data: dict, expires_delta: Union[timedelta, None] = None):
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.utcnow() + timedelta(minutes=15)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]): # señor que mira tu tarjeta
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("username")
+        if username is None:
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+    user = get_user(username)
+    if user is None:
+        raise credentials_exception
+    return user
+
+
 db=SessionLocal()
 
+# ---------------------------------------------------------------------------------------
+@app.post("/login", response_model=Token)
+async def login_for_access_token(
+    form_data: Annotated[OAuth2PasswordRequestForm, Depends()]
+):
+    user = authenticate_user(form_data.username, form_data.password)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"username": user.username}, expires_delta=access_token_expires
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
 
 # GET -----------------------------------------------------------------------------------
-
 # get all photos
 @app.get('/photos',response_model=List[Photo], status_code=200)
-def get_all_photos():
+def get_all_photos(current_user: Annotated[User_aide, Depends(get_current_user)]): # el current_user se puede usar
     photos=db.query(models.Photo).all()
 
     if photos is None:
@@ -236,10 +327,11 @@ def get_a_senior(senior_id:int):
 
     return senior
 
-# get a user by name and password, to check if it's correct TODO: by name or by user name? 
-@app.get('/users/{name}/{password}',response_model=User_aide,status_code=status.HTTP_200_OK)
-def get_a_user(name:str, password:str):
-    user = db.query(models.User_aide).filter(models.User_aide.name == name).filter(models.User_aide.password == password).first()
+
+# get a user by username and password, to check if it's correct 
+@app.get('/users/{username}/{password}',response_model=User_aide,status_code=status.HTTP_200_OK)
+def get_a_user(username:str, password:str):
+    user = db.query(models.User_aide).filter(models.User_aide.username == username).filter(models.User_aide.password == password).first()
     if user is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Wrong user or password")
     

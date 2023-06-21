@@ -8,15 +8,17 @@ class User_aide(Base):
     __tablename__ = "user_aide"
 
     id = Column("id",Integer, primary_key=True, nullable=False)
+    username = Column("username",String, nullable=False, unique=True)
     name = Column("name",String, nullable=False)
     password = Column("password",String, nullable=False)
 
-    def __init__(self, id, name):
+    def __init__(self, id, name, username):
         self.id = id
         self.name = name
+        self.username = username
 
     def __repr__(self):
-        return f"({self.id}{self.name})"
+        return f"({self.id}{self.name}{self.username})"
 
 
 class Tutor(Base):
