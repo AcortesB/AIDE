@@ -1,6 +1,6 @@
 from fastapi import FastAPI, status, HTTPException, Depends, Response
 from database import SessionLocal
-from typing import Union
+from typing import Union, List
 from pydantic import BaseModel
 from typing import Optional, List, Dict, Union
 from fastapi.middleware.cors import CORSMiddleware
@@ -12,7 +12,8 @@ from passlib.context import CryptContext
 from jose import JWTError, jwt
 from datetime import datetime, timedelta
 import models
-from passlib.exc import UnknownHashError 
+from passlib.exc import UnknownHashError
+from sqlalchemy import text
 
 # to get a string like this run:
 # openssl rand -hex 32
@@ -43,8 +44,9 @@ class Token(BaseModel):
 
 class User_aide(BaseModel):
     id: int
-    username: str
     name: str
+    username: str
+    mail: str
     password: str
 
     class Config:
@@ -168,7 +170,6 @@ def verify_password(plain_password, hashed_password):
         return False
         
 
-# no hago el hasheo de ninguna password, así que no hashea ninguna, por eso no la encuentra
 def get_password_hash(password):
     return pwd_context.hash(password)
 
@@ -317,8 +318,18 @@ def get_an_activity_reports(activity_id:int):
     return reports
 
 
-# get a senior by id
-@app.get('/seniors/{senior_id}',response_model=Senior,status_code=status.HTTP_200_OK)
+# get a senior name by id
+@app.get('/seniors/{senior_id}',response_model=str,status_code=status.HTTP_200_OK)
+def get_a_senior(senior_id:int):
+    senior=db.query(models.User_aide).filter(models.User_aide.id==senior_id).first().name
+    
+    if senior is None:
+        raise HTTPException(status_code=400,detail="Senior not found")
+
+    return senior
+
+# get a senior name by id
+@app.get('/senior/{senior_id}',response_model=Senior,status_code=status.HTTP_200_OK)
 def get_a_senior(senior_id:int):
     senior=db.query(models.Senior).filter(models.Senior.id==senior_id).first()
     
@@ -326,6 +337,17 @@ def get_a_senior(senior_id:int):
         raise HTTPException(status_code=400,detail="Senior not found")
 
     return senior
+
+# get the senior associated with a tutor
+@app.get('/tutors/{username}/seniors',response_model=List[Senior],status_code=status.HTTP_200_OK)
+def get_the_associated_seniors(username:str):
+    user=db.query(models.User_aide).filter(models.User_aide.username==username).first()
+    tutor=db.query(models.Tutor).filter(models.Tutor.id==user.id).first()
+    
+    if tutor is None:
+        raise HTTPException(status_code=400,detail="Tutor not found")
+
+    return tutor.seniors
 
 
 # get a user by username and password, to check if it's correct 
@@ -336,6 +358,26 @@ def get_a_user(username:str, password:str):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Wrong user or password")
     
     return user
+
+# get all users 
+@app.get('/users',response_model=List[User_aide], status_code=200)
+def get_all_users():
+    users=db.query(models.User_aide).all()
+
+    if users is None:
+        raise HTTPException(status_code=400,detail="There're no users")
+
+    return users
+
+# get a user by username 
+@app.get('/users/{username}',response_model=User_aide,status_code=status.HTTP_200_OK)
+def get_a_user(username:str):
+    user = db.query(models.User_aide).filter(models.User_aide.username == username).first()
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="User not found")
+    
+    return user
+
 
 # get a specific person position in a specific photo
 @app.get('/photos/{photo_id}/people/{person_id}',response_model=Position,status_code=status.HTTP_200_OK)
@@ -373,7 +415,76 @@ def get_all_played_activities(senior_id:int):
 
     return activities
 
+# get the id 
 # POST -----------------------------------------------------------------------------------
+
+# post a new user
+@app.post('/users',response_model=User_aide, status_code=status.HTTP_201_CREATED)
+def create_a_tutor(tutor: User_aide, response: Response):
+    db_tutor=db.query(models.User_aide).filter(models.User_aide.id==tutor.id).first()
+    query = text('SELECT MAX(id) FROM User_aide')
+    db_id = db.execute(query).scalar()
+    if db_tutor is not None:
+        raise HTTPException(status_code=400,detail="User already exists")
+    
+    new_user=models.User_aide(
+        id=db_id + 1,
+        name=tutor.name,
+        username=tutor.username,
+        mail=tutor.mail,
+        password=tutor.password,
+    )
+
+    db.add(new_user)
+    db.commit()
+
+    return Response(content=f"New user with id {new_user.id} added")
+
+
+# post a new tutor
+@app.post('/users/tutors/{tutor_id}',response_model=Tutor, status_code=status.HTTP_201_CREATED)
+def create_a_tutor(tutor_id:int):
+    db_tutor=db.query(models.User_aide).filter(models.User_aide.id==tutor_id).first()
+
+    if db_tutor is None:
+        raise HTTPException(status_code=400,detail="User does not exists")
+    
+    new_tutor=models.Tutor(
+        id=db_tutor.id
+    )
+      
+    db.add(new_tutor)
+    db.commit()
+
+    return Response(content=f"New tutor with id {new_tutor.id} added")
+
+# post a new senior
+@app.post('/users/tutor/{tutor_username}/seniors/{senior_id}',response_model=Senior, status_code=status.HTTP_201_CREATED)
+def create_a_senior(senior_id:int, tutor_username:str):
+    db_senior=db.query(models.User_aide).filter(models.User_aide.id==senior_id).first()
+    db_tutor=db.query(models.User_aide).filter(models.User_aide.username==tutor_username).first()
+
+    if db_senior is None:
+        raise HTTPException(status_code=400,detail="User does not exists")
+    
+    if db_tutor is None:
+        raise HTTPException(status_code=400,detail="Tutor does not exists")
+
+    new_senior=models.Senior(
+        id=db_senior.id,
+        total_playing_time="00:00:00",
+        hour_start_avg="00:00:00",
+        hour_finish_avg="00:00:00",
+        score_avg=0,
+        tutor_id= db_tutor.id
+    )
+      
+    db.add(new_senior)
+    db.commit()
+
+    return Response(content=f"New senior with id {new_senior.id} added")
+
+
 
 # post a photo
 @app.post('/photos',response_model=Photo, status_code=status.HTTP_201_CREATED)
