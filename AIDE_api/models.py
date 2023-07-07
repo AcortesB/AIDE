@@ -8,17 +8,20 @@ class User_aide(Base):
     __tablename__ = "user_aide"
 
     id = Column("id",Integer, primary_key=True, nullable=False)
-    username = Column("username",String, nullable=False, unique=True)
     name = Column("name",String, nullable=False)
+    username = Column("username",String, nullable=False)
+    mail = Column("mail",String, nullable=False) 
     password = Column("password",String, nullable=False)
 
-    def __init__(self, id, name, username):
+    def __init__(self, id, name, username, mail, password):
         self.id = id
         self.name = name
         self.username = username
+        self.mail = mail
+        self.password = password
 
     def __repr__(self):
-        return f"({self.id}{self.name}{self.username})"
+        return f"({self.id}{self.name}{self.username}{self.mail})"
 
 
 class Tutor(Base):
@@ -32,7 +35,7 @@ class Tutor(Base):
         self.id = id
 
     def __repr__(self):
-        return f"({self.id})"
+        return f"({self.id}{self.seniors})"
 
 
 class Senior(Base):
@@ -45,22 +48,23 @@ class Senior(Base):
     score_avg = Column("score_avg",Integer, nullable=False)
     tutor_id = Column("tutor_id",Integer, ForeignKey("tutor.id"), nullable=False) # is_associated_with
     
+    activities = relationship('Activity', secondary='senior_activity')
     tutor = relationship("Tutor", back_populates="seniors")
     customized_activities = relationship("CustomizedAct", back_populates="senior")
     reports = relationship("ReportActivity",back_populates="senior")
     #activities = relationship("Activity",secondary="SeniorActivity", back_populates="seniors")
 
 
-    def __init__(self, id, total_playing_time, hour_start_avg, hour_finish_avg, score_avg, is_associated_with ):
+    def __init__(self, id, total_playing_time, hour_start_avg, hour_finish_avg, score_avg, tutor_id ):
         self.id = id
         self.total_playing_time = total_playing_time
         self.hour_start_avg = hour_start_avg
         self.hour_finish_avg = hour_finish_avg
         self.score_avg = score_avg
-        self.is_associated_with = is_associated_with
+        self.tutor_id = tutor_id
 
     def __repr__(self):
-        return f"({self.id}{self.total_playing_time}{self.hour_start_avg}{self.hour_finish_avg}{self.score_avg}{self.is_associated_with})"
+        return f"({self.id}{self.total_playing_time}{self.hour_start_avg}{self.hour_finish_avg}{self.score_avg}{self.tutor_id})"
 
 
 class Activity(Base):
@@ -74,6 +78,7 @@ class Activity(Base):
     num_answers = Column("num_answers", Integer, nullable=False)
     
     reports = relationship("ReportActivity", back_populates="activity")
+    seniors = relationship('Senior', secondary='senior_activity')
     #seniors = relationship("Senior",secondary="SeniorActivity", back_populates="activities")
 
     def __init__(self, id, name, description, demo_video, num_answers):
@@ -95,6 +100,8 @@ class CustomizedAct(Base):
     senior_id = Column("senior_id", Integer, ForeignKey("senior.id"), nullable=False)
     senior = relationship("Senior", back_populates="customized_activities")
     #photos = relationship("Photo", secondary="PhotoCustomized", back_populates="customized_activities")
+    photos = relationship('Photo', secondary='photo_customized')
+    
     def __init__(self, id):
         self.id = id
 
@@ -143,13 +150,16 @@ class Photo(Base):
 
     id = Column("id", Integer, primary_key=True, nullable=False)
     description = Column("description", Text, nullable=False)
+    photo_file = Column("photo_file", String, nullable=False)
     upload = Column("upload", Integer, ForeignKey("tutor.id", ondelete="CASCADE", onupdate="CASCADE"), nullable=False)
-    #people = relationship('Person', secondary='Position', back_populates="photos")
-    #customized_activities = relationship("CustomizedAct", secondary="PhotoCustomized", back_populates="photos")
+    
+    customized_activities = relationship('CustomizedAct', secondary='photo_customized')
+    people = relationship('Person', secondary='position')
 
-    def __init__(self, id, description, upload ):
+    def __init__(self, id, description, photo_file, upload ):
         self.id = id
         self.description = description
+        self.photo_file = photo_file
         self.upload = upload
 
     def __repr__(self):
@@ -167,7 +177,7 @@ class Person(Base):
     eyes_color = Column("eyes_color", String, nullable=False)
     familiar_rank = Column("familiar_rank", String, nullable=False)
     
-    #photos = relationship('Photo', secondary="Position", back_populates="people")
+    photos = relationship('Photo', secondary='position')
 
     def __init__(self, id, name, surname, sex, skin_color, eyes_color, familiar_rank):
         self.id = id
@@ -220,7 +230,8 @@ class PhotoCustomized(Base):
     __tablename__ = "photo_customized"
 
     id_photo = Column("id_photo", Integer, ForeignKey("photo.id"), primary_key=True, nullable=False)
-    id_activity = Column("id_activity", Integer, ForeignKey("activity.id"), primary_key=True, nullable=False)
+    id_activity = Column("id_activity", Integer, ForeignKey("customized_act.id"), primary_key=True, nullable=False)
+    
 
     def __init__(self, id_photo, id_activity):
         self.id_photo = id_photo
