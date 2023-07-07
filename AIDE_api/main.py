@@ -1,4 +1,4 @@
-from fastapi import FastAPI, status, HTTPException, Depends, Response
+from fastapi import FastAPI, status, HTTPException, Depends, Response, File, UploadFile
 from database import SessionLocal
 from typing import Union, List
 from pydantic import BaseModel
@@ -14,6 +14,8 @@ from datetime import datetime, timedelta
 import models
 from passlib.exc import UnknownHashError
 from sqlalchemy import text
+import os
+from fastapi.staticfiles import StaticFiles
 
 # to get a string like this run:
 # openssl rand -hex 32
@@ -26,6 +28,9 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 app=FastAPI()
+
+# ES NECESARIA PORQUE... monta la carpeta uploads como una ruta accesible para mi aplicación
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 origins = ['http://localhost:19006','http://127.0.0.1:19006']
 
@@ -111,6 +116,7 @@ class ReportActivity(BaseModel):
 class Photo(BaseModel):
     id: int
     description: str
+    photo_file: str
     upload: str
 
     class Config:
@@ -262,6 +268,16 @@ def get_a_photo(photo_id:int):
     
     return photo
 
+# get a photo by name
+@app.get('/photo_by_name/{photo_file}/people',response_model=List[Person],status_code=status.HTTP_200_OK)
+def get_a_photo(photo_file:str):
+    photo=db.query(models.Photo).filter(models.Photo.photo_file==photo_file).first()
+
+    if photo is None:
+        raise HTTPException(status_code=400,detail="Photo not found")
+    
+    return photo.people
+
 
 # get all activities
 @app.get('/activities',response_model=List[Activity], status_code=200)
@@ -317,6 +333,15 @@ def get_an_activity_reports(activity_id:int):
 
     return reports
 
+# get the reports from an activity by senior
+@app.get('/activities/{activity_id}/senior/{senior_id}/reports',response_model=List[ReportActivity],status_code=status.HTTP_200_OK)
+def get_an_activity_senior_reports(activity_id:int, senior_id:int):
+    reports=db.query(models.ReportActivity).filter(models.ReportActivity.activity_id==activity_id).filter(models.ReportActivity.senior_id==senior_id).all()
+
+    if reports is None:
+        raise HTTPException(status_code=400,detail="There're no reports for this activity")
+
+    return reports
 
 # get a senior name by id
 @app.get('/seniors/{senior_id}',response_model=str,status_code=status.HTTP_200_OK)
@@ -389,15 +414,36 @@ def get_a_position(photo_id:int, person_id:int):
 
     return person_position
 
-# get all the positions from a photo
-@app.get('/photos/{photo_id}/people',response_model=List[Position],status_code=status.HTTP_200_OK)
-def get_all_positions(photo_id:int):
-    people=db.query(models.Position).filter(models.Position.id_photo==photo_id).all()
+# get all the people from a photo
+@app.get('/photos/{photo_id}/people',response_model=List[Person],status_code=status.HTTP_200_OK)
+def get_all_the_people_in_a_photo(photo_id:int):
+    photo=db.query(models.Photo).filter(models.Photo.id==photo_id).first()
 
-    if people is None:
-        raise HTTPException(status_code=400,detail="There're no people (positions) for this photo")
+    if photo is None:
+        raise HTTPException(status_code=400,detail="Photo not found")
 
-    return people
+    return photo.people
+
+# get a photo id
+@app.get('/photo_id_by_name/{photo_file}',response_model=Photo,status_code=status.HTTP_200_OK)
+def get_photo_id_by_name(photo_file:str):
+    photo=db.query(models.Photo).filter(models.Photo.photo_file==photo_file).first()
+
+    if photo is None:
+        raise HTTPException(status_code=400,detail="Photo not found")
+
+    return photo
+
+# get a person by name and surname
+@app.get('/person_by_name_and_surname/{person_name}/{person_surname}',response_model=Person,status_code=status.HTTP_200_OK)
+def get_photo_id_by_name(person_name:str, person_surname:str ):
+    person=db.query(models.Person).filter(models.Person.name==person_name).filter(models.Person.surname==person_surname).first()
+
+    if person is None:
+        raise HTTPException(status_code=400,detail="Photo not found")
+
+    return person
+
 
 # get the activities a senior played
 @app.get('/senior/{senior_id}/playedactivities',response_model=List[Activity], status_code=200)
@@ -415,7 +461,26 @@ def get_all_played_activities(senior_id:int):
 
     return activities
 
-# get the id 
+# get the customizedactivities from a specific senior
+@app.get('/customized_activities/{senior_id}',response_model=List[CustomizedAct], status_code=200)
+def get_all_senior_customized_activities(senior_id:int):
+    senior_customized_activities=db.query(models.CustomizedAct).filter(models.CustomizedAct.senior_id==senior_id).all()
+
+    if senior_customized_activities is None:
+        raise HTTPException(status_code=400,detail="There're no customized activities")
+
+    return senior_customized_activities
+
+# get the photos of a specific customized activity
+@app.get('/customized_activities/{customized_activity_id}/photos',response_model=List[Photo], status_code=200)
+def get_all_customized_activity_photos(customized_activity_id:int):
+    customized_activity_photos=db.query(models.CustomizedAct).filter(models.CustomizedAct.id==customized_activity_id).first()
+
+    if customized_activity_photos is None:
+        raise HTTPException(status_code=400,detail="There're no photos in this activity")
+
+    return customized_activity_photos.photos
+
 # POST -----------------------------------------------------------------------------------
 
 # post a new user
@@ -490,13 +555,16 @@ def create_a_senior(senior_id:int, tutor_username:str):
 @app.post('/photos',response_model=Photo, status_code=status.HTTP_201_CREATED)
 def create_a_photo(photo: Photo, response: Response):
     db_photo=db.query(models.Photo).filter(models.Photo.id==photo.id).first()
+    query = text('SELECT MAX(id) FROM Photo')
+    db_id = db.execute(query).scalar()
     
     if db_photo is not None:
         raise HTTPException(status_code=400,detail="Photo already exists")
     
     new_photo=models.Photo(
-        id=photo.id,
+        id=db_id + 1,
         description=photo.description,
+        photo_file=photo.photo_file,
         upload=photo.upload
     )
 
@@ -510,12 +578,14 @@ def create_a_photo(photo: Photo, response: Response):
 @app.post('/people',response_model=Person, status_code=status.HTTP_201_CREATED)
 def create_a_person(person:Person):
     db_person=db.query(models.Person).filter(models.Person.id==person.id).first()
+    query = text('SELECT MAX(id) FROM Person')
+    db_id = db.execute(query).scalar()
     
     if db_person is not None:
         raise HTTPException(status_code=400,detail="Person already exists")
     
     new_person=models.Person(
-        id=person.id,
+        id=db_id + 1,
         name=person.name,
         surname=person.surname,
         sex=person.sex,
@@ -529,9 +599,8 @@ def create_a_person(person:Person):
 
     return Response(content=f"New person with id {new_person.id} added")
 
-
-# post a position
-@app.post('/photos/{id_photo}/people/{id_person}/positions',response_model=Position, status_code=status.HTTP_201_CREATED)
+# post a position in a photo
+@app.post('/photos/{id_photo}/people/{id_person}/position',response_model=Position, status_code=status.HTTP_201_CREATED)
 def create_a_position(id_photo:int,id_person:int,position:Position):
     photo=db.query(models.Photo).filter(models.Photo.id==id_photo).first()
     person=db.query(models.Person).filter(models.Person.id==id_person).first()
@@ -543,9 +612,9 @@ def create_a_position(id_photo:int,id_person:int,position:Position):
         raise HTTPException(status_code=400,detail="Person not found")
     
     else:
-        db_person=db.query(models.Person).filter(models.Position.id_photo==id_photo and models.Position.id_person==id_person).first()
+        db_position=db.query(models.Position).filter(models.Position.id_photo==id_photo).filter(models.Position.id_person==id_person).first()
         
-        if db_person is not None:
+        if db_position is not None:
             raise HTTPException(status_code=400,detail="Position with the id_person and the id_photo already exists")
    
     new_position=models.Position(

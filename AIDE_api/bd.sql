@@ -1,7 +1,7 @@
 
-INSERT INTO user_aide (name, username, password) VALUES ('John Doe', 'JD','$2b$12$wrZEdyBI4o5Tf1R9.gKrb.k1VfTmurtUEbgjAhOWCnlfiXTUzDE1O');
-INSERT INTO user_aide (name, username, password) VALUES ('Sarah Castello','SC', '$2b$12$Itxz5DwBPiJ7Ypi65.YtkeRN2Bnk7vlMhLZZkdNFuiGJM.TdD/CK6');
-INSERT INTO user_aide (name, username, password) VALUES ('Allan Poe','AP','$2b$12$mPcnbGWmbm7X3Tui7MLsoOrCemeK8K5WM85wl6Ri8ASqmrft985wm');
+INSERT INTO user_aide (name, username, mail, password) VALUES ('John Doe', 'JD','JD@gmail.es','$2b$12$wrZEdyBI4o5Tf1R9.gKrb.k1VfTmurtUEbgjAhOWCnlfiXTUzDE1O');
+INSERT INTO user_aide (name, username, mail, password) VALUES ('Sarah Castello','SC','SC@gmail.es','$2b$12$Itxz5DwBPiJ7Ypi65.YtkeRN2Bnk7vlMhLZZkdNFuiGJM.TdD/CK6');
+INSERT INTO user_aide (name, username, mail, password) VALUES ('Allan Poe','AP','AP@gmail.es','$2b$12$mPcnbGWmbm7X3Tui7MLsoOrCemeK8K5WM85wl6Ri8ASqmrft985wm');
 
 
 INSERT INTO tutor (id) VALUES (1);
@@ -26,9 +26,9 @@ INSERT INTO report_activity (time_playing, number_of_tries, score, senior_id, ac
 INSERT INTO report_activity (time_playing, number_of_tries, score, senior_id, activity_id) VALUES ('00:42:00', 5, 8, 3, 3);
 
 
-INSERT INTO photo (description, upload) VALUES ('Christmas day',1);
-INSERT INTO photo (description, upload) VALUES ('Beach holidays',1);
-INSERT INTO photo (description, upload) VALUES ('Your birthday 74',1);
+INSERT INTO photo (description, upload, photo_file) VALUES ('Christmas day',1,'aaa');
+INSERT INTO photo (description, upload, photo_file) VALUES ('Beach holidays',1,'bbb');
+INSERT INTO photo (description, upload, photo_file) VALUES ('Your birthday 74',1,'ccc');
 
 
 INSERT INTO person (name, surname, sex, skin_color, eyes_color, familiar_rank) VALUES ('Andrea','Talls','F', 'white', 'brown', 'granddaughter');
