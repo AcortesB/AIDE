@@ -31,6 +31,7 @@ app=FastAPI()
 
 # ES NECESARIA PORQUE... monta la carpeta uploads como una ruta accesible para mi aplicación
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+#app.mount("/../AIDE_ui/assets", StaticFiles(directory="assets"), name="assets")
 
 origins = ['http://localhost:19006','http://127.0.0.1:19006']
 
@@ -53,6 +54,7 @@ class User_aide(BaseModel):
     username: str
     mail: str
     password: str
+    type: str
 
     class Config:
         orm_mode = True
@@ -71,6 +73,18 @@ class Senior(BaseModel):
     hour_finish_avg: time
     score_avg: int
     tutor_id: int
+    sex: str
+    birth_year: int
+    birth_place: str
+    descendants_num: int
+    sons_num: int
+    daughters_num: int
+    siblings_num: int
+    brothers_num: int
+    sisters_num: int
+    partner_name: str
+    father_name: str
+    mother_name: str
 
     class Config:
         orm_mode = True
@@ -81,6 +95,7 @@ class Activity(BaseModel):
     name: str
     description: str
     demo_video: str
+    photo_file: str
     num_answers: int
 
     class Config:
@@ -247,16 +262,6 @@ async def login_for_access_token(
     return {"access_token": access_token, "token_type": "bearer"}
 
 # GET -----------------------------------------------------------------------------------
-# get all photos
-@app.get('/photos',response_model=List[Photo], status_code=200)
-def get_all_photos(current_user: Annotated[User_aide, Depends(get_current_user)]): # el current_user se puede usar
-    photos=db.query(models.Photo).all()
-
-    if photos is None:
-        raise HTTPException(status_code=400,detail="There're no photos")
-    
-    return photos
-
 
 # get a photo by id
 @app.get('/photos/{photo_id}',response_model=Photo,status_code=status.HTTP_200_OK)
@@ -269,7 +274,7 @@ def get_a_photo(photo_id:int):
     return photo
 
 # get a photo by name
-@app.get('/photo_by_name/{photo_file}/people',response_model=List[Person],status_code=status.HTTP_200_OK)
+@app.get('/{photo_file}/people',response_model=List[Person],status_code=status.HTTP_200_OK)
 def get_a_photo(photo_file:str):
     photo=db.query(models.Photo).filter(models.Photo.photo_file==photo_file).first()
 
@@ -291,7 +296,7 @@ def get_all_activities():
 
 
 # get all customized activities
-@app.get('/activities/customized_activities',response_model=List[Activity], status_code=200)
+@app.get('/activities/customized_activities_by_senior',response_model=List[Activity], status_code=200)
 def get_all_customized_activities():
     customized_activities=db.query(models.Activity).filter(models.Activity.id==models.CustomizedAct.id).all()
 
@@ -303,7 +308,7 @@ def get_all_customized_activities():
 
 # get all generic activities
 @app.get('/activities/generic_activities',response_model=List[Activity], status_code=200)
-def get_all_customized_activities():
+def get_all_generic_activities():
     generic_activities=db.query(models.Activity).filter(models.Activity.id==models.GenericAct.id).all()
 
     if generic_activities is None:
@@ -409,7 +414,7 @@ def get_a_user(username:str):
 def get_a_position(photo_id:int, person_id:int):
     person_position=db.query(models.Position).filter(models.Position.id_photo==photo_id and models.Position.id_person==person_id).first()
 
-    if person_position.id_photo!=photo_id or person_position.id_person!=person_id:
+    if person_position is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Position not found")
 
     return person_position
@@ -462,24 +467,34 @@ def get_all_played_activities(senior_id:int):
     return activities
 
 # get the customizedactivities from a specific senior
-@app.get('/customized_activities/{senior_id}',response_model=List[CustomizedAct], status_code=200)
+@app.get('/customized_activities_by_senior/{senior_id}',response_model=List[CustomizedAct], status_code=200)
 def get_all_senior_customized_activities(senior_id:int):
-    senior_customized_activities=db.query(models.CustomizedAct).filter(models.CustomizedAct.senior_id==senior_id).all()
+    senior_customized_activities=db.query(models.Senior).filter(models.Senior.id==senior_id).first()
 
     if senior_customized_activities is None:
         raise HTTPException(status_code=400,detail="There're no customized activities")
 
-    return senior_customized_activities
+    return senior_customized_activities.customized_activities
 
 # get the photos of a specific customized activity
 @app.get('/customized_activities/{customized_activity_id}/photos',response_model=List[Photo], status_code=200)
 def get_all_customized_activity_photos(customized_activity_id:int):
-    customized_activity_photos=db.query(models.CustomizedAct).filter(models.CustomizedAct.id==customized_activity_id).first()
+    customized_activity_photos=db.query(models.PhotoCustomized).filter(models.PhotoCustomized.id_activity==customized_activity_id).all()
 
     if customized_activity_photos is None:
         raise HTTPException(status_code=400,detail="There're no photos in this activity")
+    # Utilizamos una lista para almacenar las fotos correspondientes a cada "id_photo"
+    photos = []
 
-    return customized_activity_photos.photos
+    for photo in customized_activity_photos:
+        # Buscamos la foto en la tabla "Photo" usando el campo "id_photo"
+        photo_data = db.query(models.Photo).filter(models.Photo.id == photo.id_photo).first()
+        if photo_data:
+            photos.append(photo_data)
+        else:
+            raise HTTPException(status_code=404, detail=f"Photo with id_photo={photo.id_photo} not found")
+
+    return photos
 
 # POST -----------------------------------------------------------------------------------
 
@@ -498,6 +513,7 @@ def create_a_tutor(tutor: User_aide, response: Response):
         username=tutor.username,
         mail=tutor.mail,
         password=tutor.password,
+        type=tutor.type
     )
 
     db.add(new_user)

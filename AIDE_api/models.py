@@ -12,13 +12,15 @@ class User_aide(Base):
     username = Column("username",String, nullable=False)
     mail = Column("mail",String, nullable=False) 
     password = Column("password",String, nullable=False)
+    type = Column("type",String, nullable=False)
 
-    def __init__(self, id, name, username, mail, password):
+    def __init__(self, id, name, username, mail, password, type):
         self.id = id
         self.name = name
         self.username = username
         self.mail = mail
         self.password = password
+        self.type = type
 
     def __repr__(self):
         return f"({self.id}{self.name}{self.username}{self.mail})"
@@ -47,24 +49,49 @@ class Senior(Base):
     hour_finish_avg = Column("hour_finish_avg",Time, nullable=False)
     score_avg = Column("score_avg",Integer, nullable=False)
     tutor_id = Column("tutor_id",Integer, ForeignKey("tutor.id"), nullable=False) # is_associated_with
+    sex = Column("sex",String, nullable=False)
+    birth_year = Column("birth_year",String, nullable=False)
+    birth_place = Column("birth_place",String, nullable=False)
+    descendants_num = Column("descendants_num",Integer, nullable=False)
+    sons_num = Column("sons_num",Integer, nullable=False)
+    daughters_num = Column("daughters_num",Integer, nullable=False)
+    siblings_num = Column("siblings_num",Integer, nullable=False)
+    brothers_num = Column("brothers_num",Integer, nullable=False)
+    sisters_num = Column("sisters_num",Integer, nullable=False)
+    partner_name = Column("partner_name",String, nullable=False)
+    father_name = Column("father_name",String, nullable=False)
+    mother_name = Column("mother_name",String, nullable=False)
+
     
     activities = relationship('Activity', secondary='senior_activity')
     tutor = relationship("Tutor", back_populates="seniors")
     customized_activities = relationship("CustomizedAct", back_populates="senior")
     reports = relationship("ReportActivity",back_populates="senior")
-    #activities = relationship("Activity",secondary="SeniorActivity", back_populates="seniors")
 
-
-    def __init__(self, id, total_playing_time, hour_start_avg, hour_finish_avg, score_avg, tutor_id ):
+    def __init__(self, id, total_playing_time, hour_start_avg, hour_finish_avg, score_avg, tutor_id, sex, birth_year, birth_place, descendants_num, sons_num, daughters_num, siblings_num, brothers_num, sisters_num, partner_name, father_name, mother_name ):
         self.id = id
         self.total_playing_time = total_playing_time
         self.hour_start_avg = hour_start_avg
         self.hour_finish_avg = hour_finish_avg
         self.score_avg = score_avg
         self.tutor_id = tutor_id
+        
+        self.sex = sex
+        self.birth_year = birth_year
+        self.birth_place = birth_place
+        self.descendants_num = descendants_num
+        self.sons_num = sons_num
+        self.daughters_num = daughters_num
+        
+        self.siblings_num = siblings_num
+        self.brothers_num = brothers_num
+        self.sisters_num = sisters_num
+        self.partner_name = partner_name
+        self.father_name = father_name
+        self.mother_name = mother_name
 
     def __repr__(self):
-        return f"({self.id}{self.total_playing_time}{self.hour_start_avg}{self.hour_finish_avg}{self.score_avg}{self.tutor_id})"
+        return f"({self.id}{self.total_playing_time}{self.hour_start_avg}{self.hour_finish_avg}{self.score_avg}{self.tutor_id}{self.sex}{self.birth_year}{self.birth_place}{self.descendants_num}{self.sons_num}{self.daughters_num}{self.siblings_num}{self.brothers_num}{self.sisters_num}{self.partner_name}{self.father_name}{self.mother_name})"
 
 
 class Activity(Base):
@@ -75,22 +102,25 @@ class Activity(Base):
     name = Column("name", String, nullable=False)
     description = Column("description",Text, nullable=False)
     demo_video = Column("demo_video", String, nullable=False)
+    photo_file = Column("photo_file", String, nullable=False)
     num_answers = Column("num_answers", Integer, nullable=False)
+    
     
     reports = relationship("ReportActivity", back_populates="activity")
     seniors = relationship('Senior', secondary='senior_activity')
     #seniors = relationship("Senior",secondary="SeniorActivity", back_populates="activities")
 
-    def __init__(self, id, name, description, demo_video, num_answers):
+    def __init__(self, id, name, description, demo_video, photo_file, num_answers):
         self.id = id
         self.name = name
         self.description = description
         self.demo_video = demo_video
+        self.photo_file = photo_file
         self.num_answers = num_answers
 
 
     def __repr__(self):
-        return f"({self.id}{self.name}{self.description}{self.demo_video}{self.num_answers})"
+        return f"({self.id}{self.name}{self.description}{self.demo_video}{self.photo_file}{self.num_answers})"
 
 
 class CustomizedAct(Base):
