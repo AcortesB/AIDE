@@ -417,6 +417,21 @@ const TutorAddSeniorScreen = ({navigation, route}) => {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [mail, setMail] = useState("");
+  
+  const [sex, setSex] = useState("");
+  const [birth_year, setBirthYear] = useState("");
+  const [birth_place, setBirthPlace] = useState("");
+  const [descendants_num, setDescendantsNum] = useState("");
+  const [sons_num, setSonsNum] = useState("");
+  const [daughters_num, setDaughtersNum] = useState("");
+  const [siblings_num, setSiblingsNum] = useState("");
+  const [brothers_num, setBrothersNum] = useState("");
+  const [sisters_num, setSistersNum] = useState("");
+  const [partner_name, setPartnerName] = useState("");
+  const [mother_name, setMotherName] = useState("");
+  const [father_name, setFatherName] = useState("");
+
+
 
   const handleSeniorSignup = () => {
 
@@ -449,13 +464,25 @@ const TutorAddSeniorScreen = ({navigation, route}) => {
                   headers: {
                     'Content-Type': 'application/json',
                   },
-                  body: JSON.stringify({
+                  body: JSON.stringify({      
                     id: seniorData.id,
                     total_playing_time: "00:00:00",
                     hour_start_avg: "00:00:00",
                     hour_finish_avg: "00:00:00",
                     score_avg: 0,
-                    tutor_id: 100
+                    tutor_id: 100,
+                    sex: sex,
+                    birth_year: birth_year,
+                    birth_place: birth_place,
+                    descendants_num: descendants_num,
+                    sons_num: sons_num,
+                    daughters_num: daughters_num,
+                    siblings_num: siblings_num,
+                    brothers_num: brothers_num,
+                    sisters_num: sisters_num,
+                    partner_name: partner_name,
+                    father_name: father_name,
+                    mother_name: mother_name
                   }),
                 })
                 .then(response2 => {
@@ -513,6 +540,114 @@ const TutorAddSeniorScreen = ({navigation, route}) => {
           secureTextEntry={true}
           onChangeText={(password) => setPassword(password)}
         />        
+      </View>
+
+      <View style={styles.inputView}>
+        <TextInput
+          style={styles.TextInput}
+          placeholder="Sexo."
+          placeholderTextColor="#003f5c"
+          onChangeText={(sex) => setSex(sex)} 
+        />
+      </View>
+
+      <View style={styles.inputView}>
+        <TextInput
+          style={styles.TextInput}
+          placeholder="Año de nacimiento."
+          placeholderTextColor="#003f5c"
+          onChangeText={(birth_year) => setBirthYear(birth_year)} 
+        />
+      </View>
+
+      <View style={styles.inputView}>
+        <TextInput
+          style={styles.TextInput}
+          placeholder="Lugar de nacimiento."
+          placeholderTextColor="#003f5c"
+          onChangeText={(birth_place) => setBirthPlace(birth_place)} 
+        />
+      </View>
+
+      <View style={styles.inputView}>
+        <TextInput
+          style={styles.TextInput}
+          placeholder="Número total de hijos e hijas."
+          placeholderTextColor="#003f5c"
+          onChangeText={(descendants_num) => setDescendantsNum(descendants_num)} 
+        />
+      </View>
+
+      <View style={styles.inputView}>
+        <TextInput
+          style={styles.TextInput}
+          placeholder="Número de hijos varones."
+          placeholderTextColor="#003f5c"
+          onChangeText={(sons_num) => setSonsNum(sons_num)} 
+        />
+      </View>
+
+      <View style={styles.inputView}>
+        <TextInput
+          style={styles.TextInput}
+          placeholder="Número de hijas."
+          placeholderTextColor="#003f5c"
+          onChangeText={(daughters_num) => setDaughtersNum(daughters_num)} 
+        />
+      </View>
+
+      <View style={styles.inputView}>
+        <TextInput
+          style={styles.TextInput}
+          placeholder="Número total de hermanos y hermanas."
+          placeholderTextColor="#003f5c"
+          onChangeText={(siblings_num) => setSiblingsNum(siblings_num)} 
+        />
+      </View>
+
+      <View style={styles.inputView}>
+        <TextInput
+          style={styles.TextInput}
+          placeholder="Número de hermanos varones."
+          placeholderTextColor="#003f5c"
+          onChangeText={(brothers_num) => setBrothersNum(brothers_num)} 
+        />
+      </View>
+
+      <View style={styles.inputView}>
+        <TextInput
+          style={styles.TextInput}
+          placeholder="Número de hermanas."
+          placeholderTextColor="#003f5c"
+          onChangeText={(sisters_num) => setSistersNum(sisters_num)} 
+        />
+      </View>
+
+      <View style={styles.inputView}>
+        <TextInput
+          style={styles.TextInput}
+          placeholder="Nombre de la pareja."
+          placeholderTextColor="#003f5c"
+          onChangeText={(partner_name) => setPartnerName(partner_name)} 
+        />
+      </View>
+
+      <View style={styles.inputView}>
+        <TextInput
+          style={styles.TextInput}
+          placeholder="Nombre de la madre."
+          placeholderTextColor="#003f5c"
+          onChangeText={(mother_name) => setMotherName(mother_name)} 
+        />
+      </View>
+
+      <View style={styles.inputView}>
+        <TextInput
+          style={styles.TextInput}
+          placeholder="Nombre del padre."
+          placeholderTextColor="#003f5c"
+          onChangeText={(father_name) => setFatherName(father_name)} 
+        />
       </View>
       
       <TouchableOpacity onPress={handleSeniorSignup} style={styles.loginBtn}>
@@ -678,7 +813,7 @@ const TutorSeniorActivityScoresScreen = ({navigation, route}) => {
     </View>
   );
 };
-//<Text>Media de puntuación:      {suma}/{selected_activity.num_answers}</Text>
+
 
 const TutorGetPhotoScreen = ({navigation, route}) => {
   const { tutor_nickname, tutor_password, selected_senior, selected_photo } = route.params;
@@ -1426,11 +1561,6 @@ useEffect(() => {
   //console.log("customized_acts ya no está vacío")
 }, [generic_activities]);
 
-const handleActivityPress = (activity) => {
-  //console.log('Se hizo clic en la activity:', activity);
-  //navigation.navigate('SeniorStartActivity', { senior_nickname: senior_nickname, senior_password: senior_password, senior_name: senior_name});
-};
-
   const renderPhotoActivityItem = ({ item }) => (
     
     <TouchableOpacity onPress={() => handleActivityPress(item)} style={styles.galleryItem}>
@@ -1875,6 +2005,13 @@ const SeniorStartActivityScreen = ({navigation, route}) => {
     const [correctTouches, setCorrectTouches] = useState(0); // Nuevo estado para contar el número de toques correctos realizados
     const [done_questions, setDoneQuestions] = useState([]);//array para saber qué preguntas hemos hecho ya
     const [done_fake_answers, setDoneFakeAnswers] = useState([]);
+    const [WrongAnsweredQuestionsKeys, setWrongAnsweredQuestionsKeys] = useState([]);
+    const [key, setKey] = useState('');
+
+    const [logMessages, setLogMessages] = useState([]);
+    const [showLog, setShowLog] = useState(false);
+    const [correctedTouches, setCorrectedTouches] = useState(0);
+
 
     
     //diccionario con todas las preguntas
@@ -2058,7 +2195,7 @@ const SeniorStartActivityScreen = ({navigation, route}) => {
 
         
         console.log(answers)
-
+        setKey(randomKey);
         setAllAnswers(answers);
         setQuestion(pregunta);
         setAnswer(respuesta);
@@ -2068,20 +2205,134 @@ const SeniorStartActivityScreen = ({navigation, route}) => {
     useEffect(() => {
       // Verificamos si el usuario ha realizado los 5 toques correctos
       if (correctTouches === 5) {
-        //leemos un array que contenga los errores que haya tenido para volver a formular las preguntas y al acabarlo sí que hacemos la navegación y nos vamos.
-        // Navegamos a la pantalla de finalización de la actividad
-        navigation.navigate('SeniorActivityFinished', { senior_nickname:senior_nickname, senior_password:senior_password, senior_name:senior_name});
+        if ( WrongAnsweredQuestionsKeys.length>0 ){
+
+          const randomKey = WrongAnsweredQuestionsKeys[0];
+          WrongAnsweredQuestionsKeys.shift();
+          //establecemos cual seria la pregunta y cual seria la respuesta
+          let pregunta = preguntas[randomKey];
+          let respuesta = '';
+          
+          if (randomKey === 'name') {
+            respuesta = seniorId.name;
+          }else{
+            respuesta = senior_info[randomKey];
+          }
+          console.log('pregunta:', pregunta)
+          console.log('respuesta:', respuesta)
+
+
+          //answers.push(respuesta); //le añades la respuesta
+          const answers = [];
+          
+          //haremos un array de respuestas incorrectas para cada caso
+          if (randomKey === 'birth_place') {
+            for (let i = 0; i < 2; i++) {
+              answers.push(getRandomFromArray(places, answers, respuesta));
+            }
+          } else if (randomKey === 'birth_year') {
+            for (let i = 0; i < 2; i++) {
+              answers.push(getRandomFromArray(years, answers, respuesta));
+            }
+          } else if (randomKey === 'partner') {
+            for (let i = 0; i < 2; i++) {
+              if(seniorId.sex === 'femenino'){
+                answers.push(getRandomFromArray(names, answers, respuesta).masculino);
+              }else{
+                answers.push(getRandomFromArray(names, answers, respuesta).femenino);
+              }
+            }
+          } else if (randomKey === 'mother'){
+            for (let i = 0; i < 2; i++) {
+              answers.push(getRandomFromArray(names, answers, respuesta).femenino);
+            }
+          } else if (randomKey === 'father'){
+            for (let i = 0; i < 2; i++) {
+              answers.push(getRandomFromArray(names, answers, respuesta).masculino);
+            }
+          } else if (randomKey === 'name') {
+            for (let i = 0; i < 2; i++) {
+              if(seniorId.sex === 'femenino'){
+                answers.push(getRandomFromArray(names, answers, respuesta).femenino);
+              }else{
+                answers.push(getRandomFromArray(names, answers, respuesta).masculino);
+              }
+            }
+          }else{
+            for (let i = 0; i < 2; i++) {
+              answers.push(getRandomFromArray(nums, answers, respuesta));
+            }
+          }
+
+          
+          console.log(answers)
+          setKey(randomKey);
+          setAllAnswers(answers);
+          setQuestion(pregunta);
+          setAnswer(respuesta);
+          
+        }else{
+          //Navegamos a la pantalla de finalización de la actividad
+          navigation.navigate('SeniorActivityFinished', { senior_nickname:senior_nickname, senior_password:senior_password, senior_name:senior_name});
+        }
       }
-    }, [correctTouches, navigation]);
+    }, [correctedTouches, navigation]);
 
     // Manejar el toque en un elemento touchable
     const handleTouch = (ans) => {
-      // Si el toque es correcto, incrementamos el contador de toques correctos
+      // Si el toque es correcto (y si no también porque queremos que avance aunque se equivoquen), incrementamos el contador de toques correctos
       if (ans === answer) {
-        //console.log("es el correcto Maricarmen")
-        setCorrectTouches((prevCount) => prevCount + 1);
+        if (correctTouches < 5){
+          setCorrectTouches((prevCount) => prevCount + 1);
+        } else {
+          setCorrectedTouches((prevCount) => prevCount + 1);
+        }
+        
       }else{
-        //se le muestra la respuesta correcta y se añade la pregunta con la respuesta al final, para que se repita
+        let mensajeTemporal = '';
+        // ya habrá randomKey así que no tiene que haber problema
+        if (key === 'birth_place') {
+          mensajeTemporal = "Usted nació en " + senior_info[key]
+        } else if (key === 'birth_year') {
+          mensajeTemporal = "Usted nació en el año " + senior_info[key]
+        } else if (key === 'partner') {
+            if(seniorId.sex === 'femenino'){
+              mensajeTemporal = "El nombre de su marido es " + senior_info[key]
+            }else{
+              mensajeTemporal = "El nombre de su mujer es " + senior_info[key]
+            }
+        } else if (key === 'mother'){
+          mensajeTemporal = "El nombre de su madre es " + senior_info[key]
+        } else if (key === 'father'){
+          mensajeTemporal = "El nombre de su padre es " + senior_info[key]
+        } else if (key === 'name') {
+          mensajeTemporal = "Usted se llama " + senior_name
+        } else if (key === 'sisters'){
+          mensajeTemporal = "Usted tiene "+senior_info[key]+" hermanas"
+        } else if (key === 'brothers'){
+          mensajeTemporal = "Usted tiene "+senior_info[key]+" hermanos varones"
+        } else if (key === 'siblings'){
+          mensajeTemporal = "Usted tiene "+senior_info[key]+" hermanas y hermanos"
+        } else if (key === 'daughters'){
+          mensajeTemporal = "Usted tiene "+senior_info[key]+" hijas"
+        } else if (key === 'sons'){
+          mensajeTemporal = "Usted tiene "+senior_info[key]+" hijos varones"
+        } else if (key === 'descendants'){
+          mensajeTemporal = "Usted tiene "+senior_info[key]+" hijos e hijas"
+        }
+
+        setLogMessages([mensajeTemporal]);
+        setShowLog(true);
+
+        //lo dejo 5 segundos para que puedan leerlo
+        setTimeout(() => {
+          setShowLog(false);
+        }, 5000);
+        
+        setCorrectTouches((prevCount) => prevCount + 1);
+
+        //Añades la randomkey al array de wrongAnswers
+        setWrongAnsweredQuestionsKeys([...WrongAnsweredQuestionsKeys, key]);
       }
     };
 
@@ -2128,12 +2379,17 @@ const SeniorStartActivityScreen = ({navigation, route}) => {
 
 
         <View style={styles.activityContainer}>
-          {allAnswers.map((ans, index) => (
-            <TouchableOpacity key={index} onPress={() => handleTouch(ans)}>
-              <Text style={styles.answerButtonText}>{ans}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+        {showLog && (
+          <Text style={styles.speechText}>
+            {logMessages[0]}
+          </Text>
+        )}
+        {!showLog && allAnswers.map((ans, index) => (
+          <TouchableOpacity key={index} onPress={() => handleTouch(ans)}>
+            <Text style={styles.answerButtonText}>{ans}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
           
       </View>
     );

@@ -541,7 +541,7 @@ def create_a_tutor(tutor_id:int):
 
 # post a new senior
 @app.post('/users/tutor/{tutor_username}/seniors/{senior_id}',response_model=Senior, status_code=status.HTTP_201_CREATED)
-def create_a_senior(senior_id:int, tutor_username:str):
+def create_a_senior(senior: Senior, senior_id:int, tutor_username:str):
     db_senior=db.query(models.User_aide).filter(models.User_aide.id==senior_id).first()
     db_tutor=db.query(models.User_aide).filter(models.User_aide.username==tutor_username).first()
 
@@ -557,7 +557,19 @@ def create_a_senior(senior_id:int, tutor_username:str):
         hour_start_avg="00:00:00",
         hour_finish_avg="00:00:00",
         score_avg=0,
-        tutor_id= db_tutor.id
+        tutor_id= db_tutor.id,
+        sex=senior.sex,
+        birth_year=senior.birth_year,
+        birth_place=senior.birth_place,
+        descendants_num=senior.descendants_num,
+        sons_num=senior.sons_num,
+        daughters_num=senior.daughters_num,
+        siblings_num=senior.siblings_num,
+        brothers_num=senior.brothers_num,
+        sisters_num=senior.sisters_num,
+        partner_name=senior.partner_name,
+        father_name=senior.father_name,
+        mother_name=senior.mother_name
     )
       
     db.add(new_senior)
