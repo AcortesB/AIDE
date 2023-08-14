@@ -348,6 +348,18 @@ def get_an_activity_senior_reports(activity_id:int, senior_id:int):
 
     return reports
 
+# get if a senior  did an activity by searching his/her senior_id in report_activity
+@app.get('/activities/{activity_id}/report_by_senior_id/{id_senior}',response_model=ReportActivity,status_code=status.HTTP_200_OK)
+def get_a_report_by_senior_id(activity_id:int, id_senior:int):
+    report=db.query(models.ReportActivity).filter(models.ReportActivity.senior_id==id_senior).filter(models.ReportActivity.activity_id==activity_id).first()
+
+    if report is None:
+        raise HTTPException(status_code=400,detail="This senior never played this activity before")
+
+    return report
+
+
+
 # get a senior name by id
 @app.get('/seniors/{senior_id}',response_model=str,status_code=status.HTTP_200_OK)
 def get_a_senior(senior_id:int):
@@ -627,6 +639,29 @@ def create_a_person(person:Person):
 
     return Response(content=f"New person with id {new_person.id} added")
 
+
+# post de un report de una actividad
+@app.post('/activities/{id_activity}/report_by_senior_id/{id_senior}',response_model=ReportActivity, status_code=status.HTTP_201_CREATED)
+def create_a_report(report:ReportActivity, id_senior:int, id_activity:int):
+    existing_report = db.query(models.ReportActivity).filter(models.ReportActivity.senior_id == id_senior).filter(models.ReportActivity.activity_id == id_activity).first()
+    
+    if existing_report is not None:
+        raise HTTPException(status_code=400, detail="Report already exists")
+    
+    new_report = models.ReportActivity(
+        time_playing=report.time_playing,
+        number_of_tries=report.number_of_tries,
+        score=report.score,
+        senior_id=id_senior,
+        activity_id=id_activity
+    )
+
+    db.add(new_report)
+    db.commit()
+
+    return new_report
+
+
 # post a position in a photo
 @app.post('/photos/{id_photo}/people/{id_person}/position',response_model=Position, status_code=status.HTTP_201_CREATED)
 def create_a_position(id_photo:int,id_person:int,position:Position):
@@ -682,6 +717,27 @@ def update_a_photo(photo_id:int,photo:Photo):
     db.commit()
     
     return Response(content=f"Photo with id {photo_id} updated")
+
+# update de la score, el time_playing y el number_of_tries de un senior_activity
+@app.put('/activities/{activity_id}/report_by_senior_id/{senior_id}',response_model=ReportActivity,status_code=status.HTTP_200_OK)
+def update_a_report(activity_id:int,senior_id: int, report:ReportActivity):    
+    try:
+        query = text('SELECT number_of_tries FROM report_activity WHERE activity_id = :activity_id AND senior_id = :senior_id')
+        db_number_of_tries = db.execute(query, {"activity_id": activity_id, "senior_id": senior_id}).scalar()
+
+        report_to_update = db.query(models.ReportActivity).filter(models.ReportActivity.senior_id == senior_id).filter(models.ReportActivity.activity_id == activity_id).first()
+        report_to_update.score = report.score
+        report_to_update.time_playing = report.time_playing
+        report_to_update.number_of_tries = db_number_of_tries + 1
+
+        db.commit()
+        
+        return report_to_update
+
+    except Exception as e:
+        # Manejar el error de alguna manera apropiada (registrar, lanzar una excepción personalizada, etc.)
+        db.rollback()  # Revertir la transacción en caso de error
+        raise e
 
 
 # update a position on a specific person in a specific photo

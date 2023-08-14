@@ -159,20 +159,20 @@ class ReportActivity(Base):
     number_of_tries = Column("number_of_tries", Integer, nullable=False)
     score = Column("score", Integer, nullable=False)
     senior_id = Column("senior_id", Integer, ForeignKey("senior.id"), nullable=False)
-    senior = relationship("Senior", back_populates="reports")
     activity_id = Column("activity_id", Integer, ForeignKey("activity.id"), nullable=False)
+    
+    senior = relationship("Senior", back_populates="reports")
     activity = relationship("Activity", back_populates="reports")
     
-    def __init__(self, id, time_playing, number_of_tries, score, repoact_belongs_to, generate):
-        self.id = id
+    def __init__(self, time_playing, number_of_tries, score, senior_id, activity_id):
         self.time_playing = time_playing
         self.number_of_tries = number_of_tries
         self.score = score
-        self.repoact_belongs_to = repoact_belongs_to
-        self.generate = generate
+        self.senior_id = senior_id
+        self.activity_id = activity_id
 
     def __repr__(self):
-        return f"({self.id}{self.time_playing}{self.number_of_tries}{self.score}{self.repoact_belongs_to}{self.generate})"
+        return f"({self.id}{self.time_playing}{self.number_of_tries}{self.score}{self.senior_id}{self.activity_id})"
 
 
 class Photo(Base):

@@ -417,9 +417,7 @@ const TutorAddSeniorScreen = ({navigation, route}) => {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [mail, setMail] = useState("");
-  
-  const [sex, setSex] = useState("");
-  const [birth_year, setBirthYear] = useState("");
+  const [sex, setSex] = useState(null);
   const [birth_place, setBirthPlace] = useState("");
   const [descendants_num, setDescendantsNum] = useState("");
   const [sons_num, setSonsNum] = useState("");
@@ -430,6 +428,8 @@ const TutorAddSeniorScreen = ({navigation, route}) => {
   const [partner_name, setPartnerName] = useState("");
   const [mother_name, setMotherName] = useState("");
   const [father_name, setFatherName] = useState("");
+
+  const sexOptions = ["Masculino", "Femenino"];  const [birth_year, setBirthYear] = useState(""); //opciones para el desplegable
 
 
 
@@ -543,12 +543,16 @@ const TutorAddSeniorScreen = ({navigation, route}) => {
       </View>
 
       <View style={styles.inputView}>
-        <TextInput
-          style={styles.TextInput}
-          placeholder="Sexo."
-          placeholderTextColor="#003f5c"
-          onChangeText={(sex) => setSex(sex)} 
-        />
+        <Picker
+          selectedValue={sex}
+          style={[styles.TextInput, styles.tutorText, { backgroundColor: "#abe5fa", borderWidth: 0, borderColor: "transparent", borderRadius: 30 }]}
+          onValueChange={(itemValue) => setSex(itemValue)}
+        >
+          <Picker.Item label="Seleccione el sexo." value={null} />
+          {sexOptions.map((option, index) => (
+            <Picker.Item key={index} label={option} value={option} />
+          ))}
+        </Picker>
       </View>
 
       <View style={styles.inputView}>
@@ -1447,6 +1451,9 @@ const TutorAddPhotoPositionScreen = ({navigation, route}) => {
 };
 
 
+// ----------------------------------------------------------------------------------------------------------------------------
+
+
 const SeniorWelcomeScreen = ({navigation, route}) => {
   const { senior_nickname, senior_password, senior_name } = route.params;
   const [count, setCount] = useState(3); // Estado local para el contador
@@ -1745,8 +1752,14 @@ const SeniorStartActivityScreen = ({navigation, route}) => {
   
   //parametros que le pasan
   const {senior_nickname, senior_password, senior_name, activity } = route.params;
+  
+  //estados para contar el tiempo
+  const [startTime, setStartTime] = useState(null);
+  const [endTime, setEndTime] = useState(null);
+  const [formattedTime, setFormattedTime] = useState('');
 
   if (activity.name == '¿Quien es quien?'){
+
     // Diccionario de modelo de preguntas con los keys que queremos
     const preguntas = {
       hair: 'Toca con el dedo a las personas de la foto que tengan el pelo de color',
@@ -1766,20 +1779,29 @@ const SeniorStartActivityScreen = ({navigation, route}) => {
     const [activity_photos, setPhotos] = useState([]); //array que contiene todas las fotos de la actividad
     const [selectedPhotosIndexes, setSelectedPhotos] = useState([]); //estado para guardar las 3 fotos seleccionadas
     const [index, setIndex] = useState(0); //indice para renderizar la foto que sea
-    //const [index_person, setIndexPerson] = useState(0); //indice del componente dentro de people_info[0]
-    //const [index_people, setIndexPeople] = useState(0); //indice del componente dentro de people_info
     const [photo_people, setPhotoPeople] = useState([]); //array que contiene cada persona que saqle en al foto
     const [people_info, setPeopleInfo] = useState([]); //array de diccionarios con info de todas las personas que salen en la foto
     const [question, setQuestion] = useState(''); //string para establecer la pregunta
     const [peopleIndex, setPeopleIndex] = useState(0);
     const [personIndex, setPersonIndex] = useState(0);
+    const [senior, setSenior] = useState(null);
 
-    
-
-
-    //conseguimos todas las fotos de la actividad
     useEffect(() => {
+      const start = new Date();
+      setStartTime(start);
 
+      //conseguimos el senior
+      fetch('http://127.0.0.1:8000/users/'+ senior_nickname)
+        .then(response => response.json())
+        .then(senior_info => {
+          setSenior(senior_info);
+        })
+        .catch(error => {
+          console.log('Error:', error);
+          return [];
+        });
+      
+      // conseguimos las fotos personalizadas que pertenezcan a la actividad
       fetch('http://127.0.0.1:8000/customized_activities/' + activity.id + '/photos')
         .then(response => response.json())
         .then(photos => {
@@ -1870,7 +1892,6 @@ const SeniorStartActivityScreen = ({navigation, route}) => {
                 glasses: personData.glasses,
                 clothes: personData.clothes_color
               };
-              //console.log(personInfo)
               return personInfo;
             });
         });
@@ -1901,7 +1922,7 @@ const SeniorStartActivityScreen = ({navigation, route}) => {
       if (people_info && people_info[peopleIndex] && people_info[peopleIndex][personIndex]) {
         const person = people_info[peopleIndex][personIndex];
         //console.log("person:", people_info[peopleIndex][personIndex].name);
-        console.log(index)
+        //console.log(index)
         console.log("lista personas:", people_info[peopleIndex])
 
         const randomKey = getRandomKey();
@@ -1922,8 +1943,9 @@ const SeniorStartActivityScreen = ({navigation, route}) => {
         }
 
         setQuestion(pregunta);
+
       }
-    }, [people_info, peopleIndex, personIndex]);
+    }, [people_info, peopleIndex, personIndex, index]);
 
 
     // Función para manejar el toque en la pantalla y avanzar al siguiente elemento del array de fotos o acabar la actividad
@@ -1933,16 +1955,43 @@ const SeniorStartActivityScreen = ({navigation, route}) => {
       if (people_info && people_info[peopleIndex] && personIndex < people_info[peopleIndex].length - 1) {
         setPersonIndex(personIndex + 1);
       } else if (people_info && peopleIndex + 1 < people_info.length) {
-        setPersonIndex(0);
+        
         setPeopleIndex(peopleIndex + 1);
       } else if(index < selectedPhotosIndexes.length - 1){
+        setPersonIndex(0);
         setIndex((prevIndex) => prevIndex + 1);
       } else {
-        console.log('Se han mostrado todas las fotos en el array selectedPhotosIndexes');
-        navigation.navigate('SeniorActivityFinished', { senior_nickname:senior_nickname, senior_password:senior_password, senior_name:senior_name});
+        //console.log('Se han mostrado todas las fotos en el array selectedPhotosIndexes');        
+        const end = new Date();
+          setEndTime(end);
       }
       
     };
+
+    function timeConversion(td) {
+      // Convierte la diferencia de tiempo en el formato HH:MM:ss
+      const seconds = Math.floor(td / 1000);
+      const hours = Math.floor(seconds / 3600);
+      const minutes = Math.floor((seconds % 3600) / 60);
+      const remainingSeconds = seconds % 60;
+
+      const formatted = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+
+      setFormattedTime(formatted);
+    }
+
+    useEffect(() => {
+      let td = endTime - startTime;
+      console.log("time: ", td);
+      timeConversion(td);
+    }, [endTime]); 
+
+    useEffect(() => {
+      console.log("formattedTime: ", formattedTime);
+      if(index == selectedPhotosIndexes.length - 1)
+      //si ya hemos acabado con las fotos:
+      navigation.navigate('SeniorActivityFinished', { senior_nickname:senior_nickname, senior_password:senior_password, senior_name:senior_name, activity: activity, score: (selectedPhotosIndexes.length), senior: senior, playing_time: formattedTime });
+    }, [formattedTime, senior]); 
 
     return (
       <View style={styles.container}>
@@ -1986,15 +2035,16 @@ const SeniorStartActivityScreen = ({navigation, route}) => {
             <Text>{selectedPhotosIndexes[index]?.id}</Text>
             <Image
               source={{ uri: `http://localhost:8000/uploads/${selectedPhotosIndexes[index]?.photo_file}.jpg` }}
-              style={styles.photoActivityShown}
+              style={styles.image}
               resizeMode="cover"
             />
+            <Text>{index}</Text>
           </TouchableOpacity>
         </View>  
           
       </View>
     );
-
+    //style={styles.photoActivityShown}
   }else if (activity.name == 'Preguntas y respuestas'){
     
     const [seniorId, setSeniorId] = useState(null); //senior
@@ -2007,10 +2057,12 @@ const SeniorStartActivityScreen = ({navigation, route}) => {
     const [done_fake_answers, setDoneFakeAnswers] = useState([]);
     const [WrongAnsweredQuestionsKeys, setWrongAnsweredQuestionsKeys] = useState([]);
     const [key, setKey] = useState('');
-
     const [logMessages, setLogMessages] = useState([]);
     const [showLog, setShowLog] = useState(false);
     const [correctedTouches, setCorrectedTouches] = useState(0);
+
+
+    const [showSpeechText, setShowSpeechText] = useState(false); //estado para saber cuando debo poner texto en el recuadro de speechless y cuando no
 
 
     
@@ -2053,6 +2105,11 @@ const SeniorStartActivityScreen = ({navigation, route}) => {
 
     //primero coges el id del senior 
     useEffect(() => {
+
+      //establecemos el tiempo de inicio
+      const start = new Date();
+      setStartTime(start);
+
       fetch('http://127.0.0.1:8000/users/'+ senior_nickname)
         .then(response => response.json())
         .then(senior => {
@@ -2152,7 +2209,7 @@ const SeniorStartActivityScreen = ({navigation, route}) => {
 
 
         //answers.push(respuesta); //le añades la respuesta
-        const answers = [];
+        let answers = [];
         
         //haremos un array de respuestas incorrectas para cada caso
         if (randomKey === 'birth_place') {
@@ -2196,11 +2253,18 @@ const SeniorStartActivityScreen = ({navigation, route}) => {
         
         console.log(answers)
         setKey(randomKey);
-        setAllAnswers(answers);
+        setAllAnswers(shuffleArray(answers)); //desordenamos el vector de answers para que las respuestas salgan todas aleatoriamente
         setQuestion(pregunta);
         setAnswer(respuesta);
       }
     }, [seniorId,senior_info, correctTouches]);
+
+
+    function shuffleArray(array) {
+      return array.sort(() => Math.random() - 0.5);
+    }
+  
+
 
     useEffect(() => {
       // Verificamos si el usuario ha realizado los 5 toques correctos
@@ -2221,8 +2285,6 @@ const SeniorStartActivityScreen = ({navigation, route}) => {
           console.log('pregunta:', pregunta)
           console.log('respuesta:', respuesta)
 
-
-          //answers.push(respuesta); //le añades la respuesta
           const answers = [];
           
           //haremos un array de respuestas incorrectas para cada caso
@@ -2267,16 +2329,42 @@ const SeniorStartActivityScreen = ({navigation, route}) => {
           
           console.log(answers)
           setKey(randomKey);
-          setAllAnswers(answers);
+          setAllAnswers(shuffleArray(answers)); //desordenamos el vector de answers para que las respuestas salgan todas aleatoriamente
           setQuestion(pregunta);
           setAnswer(respuesta);
           
         }else{
-          //Navegamos a la pantalla de finalización de la actividad
-          navigation.navigate('SeniorActivityFinished', { senior_nickname:senior_nickname, senior_password:senior_password, senior_name:senior_name});
+          const end = new Date();
+          setEndTime(end);
         }
       }
     }, [correctedTouches, navigation]);
+
+
+    function timeConversion(td) {
+      // Convierte la diferencia de tiempo en el formato HH:MM:ss
+      const seconds = Math.floor(td / 1000);
+      const hours = Math.floor(seconds / 3600);
+      const minutes = Math.floor((seconds % 3600) / 60);
+      const remainingSeconds = seconds % 60;
+
+      const formatted = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+
+      setFormattedTime(formatted);
+    }
+
+    useEffect(() => {
+      let td = endTime - startTime;
+      console.log("time: ", td);
+      timeConversion(td);
+    }, [endTime]); 
+
+    useEffect(() => {
+      console.log("formattedTime: ", formattedTime);
+      if (WrongAnsweredQuestionsKeys.length === 0 && correctTouches === 5)
+      //Navegamos a la pantalla de finalización de la actividad
+      navigation.navigate('SeniorActivityFinished', { senior_nickname:senior_nickname, senior_password:senior_password, senior_name:senior_name, activity: activity, senior: seniorId, score: correctTouches, playing_time: formattedTime});
+    }, [formattedTime, seniorId]); 
 
     // Manejar el toque en un elemento touchable
     const handleTouch = (ans) => {
@@ -2327,6 +2415,7 @@ const SeniorStartActivityScreen = ({navigation, route}) => {
         //lo dejo 5 segundos para que puedan leerlo
         setTimeout(() => {
           setShowLog(false);
+          //setShowSpeechText(false); //hacemos que en el recuadro de la pregunta no salga nada
         }, 5000);
         
         setCorrectTouches((prevCount) => prevCount + 1);
@@ -2340,6 +2429,13 @@ const SeniorStartActivityScreen = ({navigation, route}) => {
       console.log(correctTouches);
     }, [correctTouches]); 
 
+    useEffect(() => {
+      console.log(formattedTime);
+      //Navegamos a la pantalla de finalización de la actividad
+      //navigation.navigate('SeniorActivityFinished', { senior_nickname:senior_nickname, senior_password:senior_password, senior_name:senior_name, activity: activity, senior: seniorId, score: correctTouches, playing_time: formattedTime});
+    }, [formattedTime]);
+
+
 
     return (
       <View style={styles.container}>
@@ -2347,7 +2443,11 @@ const SeniorStartActivityScreen = ({navigation, route}) => {
         
         
         <View style={styles.speechContainer}>
-        <Text style={styles.speechText}>{question}</Text>
+          {showLog ? (
+            <Text style={styles.speechText}></Text>
+          ) : (
+            <Text style={styles.speechText}>{question}</Text>
+          )}
           
           <Image
             source={require("./assets/sin-sonido2.png")}
@@ -2393,16 +2493,61 @@ const SeniorStartActivityScreen = ({navigation, route}) => {
           
       </View>
     );
-
   }
 };
 
 
 const SeniorActivityFinishedScreen = ({navigation, route}) => {
 
-  const {senior_nickname, senior_password, senior_name } = route.params;
+  const {senior_nickname, senior_password, senior_name, activity, senior, score, playing_time } = route.params;
+
+  useEffect(() => {
+    fetch('http://127.0.0.1:8000/activities/'+activity.id+'/report_by_senior_id/'+senior.id)
+      .then(response => response.json())
+      .then(report => {
+        console.log("activity.id: ", activity.id);
+        console.log("senior.id: ", senior.id);
+
+        if (report.detail === undefined){ //si el report.detail es undefined significa que ha cogido bien el report
+          //update de la score, el time_playing y el number_of_tries de un senior_activity
+          fetch('http://127.0.0.1:8000/activities/' + activity.id + '/report_by_senior_id/' + senior.id, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            id: 100,
+            senior_id: senior.id,
+            activity_id: activity.id,
+            score: score,
+            time_playing: playing_time,
+            number_of_tries: 100,
+            })
+          })
+        }else{ //si es la primera vez que el senior juega hacemos el post de este report
+          fetch('http://127.0.0.1:8000/activities/' + activity.id + '/report_by_senior_id/' + senior.id, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              id: 100,
+              time_playing: playing_time,
+              number_of_tries: 1, //porque es la primera vez que se juega
+              score: score,
+              senior_id: senior.id,
+              activity_id: activity.id
+            })
+          })
+        }
+      })
+      .catch(error => {
+        console.log('Error:', error);
+      });
+  }, []);
 
 
+  
   //coger los elementos de la route para poder pasarlos
   useEffect(() => {
 
@@ -2454,6 +2599,7 @@ const SeniorActivityFinishedScreen = ({navigation, route}) => {
       </View>
       
       <View style={styles.activityContainer}>
+        <Text style={styles.timeText}>Tiempo total: {playing_time}</Text>
       </View>
 
       
