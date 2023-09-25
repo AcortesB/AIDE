@@ -1,26 +1,28 @@
 import { StatusBar } from "expo-status-bar";
 import { FlatList, StyleSheet, Text, View, Image, TextInput, Button, TouchableOpacity, ScrollView, Picker } from "react-native";
-import {NavigationContainer} from '@react-navigation/native';
+import {NavigationContainer, useFocusEffect} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import React, { useEffect, useState } from 'react';
 import { styles } from '../styles'; // Import the styles object from styles.js
 
+
 const TutorHomeScreen = ({navigation, route}) => {
   
-    const { nickname, password } = route.params;
+    const { nickname, password, readSeniors } = route.params; //al principio readSenior estará undefined, solo será defined cuando lleguen de añadir u senior
     const [seniors, setSeniors] = useState([]);
     const [names, setNames] = useState([]);
     const [user, setUser] = useState("");
     const [selectedSenior, setSelectedSenior] = useState({ name: null, senior_id: null });
     const [completeSeniors, setCompleteSeniors] = useState([]);
+    //let readSeniorsFirstTime = true;
+    //let namesList = [];
     
     useEffect(() => {
       fetch('http://127.0.0.1:8000/tutors/' + nickname + '/seniors') // consigo los seniors del tutor en cuestión
         .then(response => response.json())
         .then(seniors => {
-          
-          setSeniors(seniors) //son setSenior establezco seniors (que al ginal es como un array con todos los seniors del tutor)
-  
+          console.log(seniors)
+          //setSeniors(seniors) //son setSenior establezco seniors (que al ginal es como un array con todos los seniors del tutor)
           const namesPromises = seniors.map(senior => {
             const senior_id = senior.id
             return fetch('http://127.0.0.1:8000/seniors/' + senior.id)
@@ -29,11 +31,14 @@ const TutorHomeScreen = ({navigation, route}) => {
               .catch(error => {
                 console.log('Error:', error);
               });
+              console.log(senior_id);
           });
   
           Promise.all(namesPromises)
             .then(names => {
               setNames(names); //establecemos names con lo que nos devuelvan las promises de haber mapeado
+              // namesList = names;
+              // console.log(namesList);
             })
             .catch(error => {
               console.log('Error:', error);
@@ -42,7 +47,7 @@ const TutorHomeScreen = ({navigation, route}) => {
         .catch(error => {
           console.log('Error:', error);
         });
-    },); //queremos que salga cada vez que se modifique la variable [names]
+      }, []);
   
     const handleSeniorSelection = (seniorName, seniorId) => {
       setSelectedSenior({ name: seniorName, senior_id: seniorId }); // Establecemos setSelectedSenior con el par de name y senior_id
@@ -52,7 +57,7 @@ const TutorHomeScreen = ({navigation, route}) => {
     // este hook se ejecutará cada vez que el valor de selectedSenior cambie.
     useEffect(() => {
     }, [selectedSenior]);
-
+    
     return (
         
       <View style={styles.container}> 

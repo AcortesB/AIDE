@@ -84,7 +84,7 @@ const TutorAddSeniorScreen = ({navigation, route}) => {
                   console.log(response2.ok)
                   if (response2.ok) {
                     console.log(tutor_nickname)
-                    navigation.navigate('TutorHome', { nickname: tutor_nickname, password: tutor_password }); //si ha salido bien nos iremos al charged login
+                    navigation.push('TutorHome', { nickname: tutor_nickname, password: tutor_password }); //si ha salido bien nos iremos al charged login
                     
                   }
                 })

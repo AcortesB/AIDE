@@ -4,6 +4,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import React, { useEffect, useState } from 'react';
 import '../App.js'
+import { styles } from '../styles'; // Import the styles object from styles.js
 
 const ChargedLoginScreen = ({navigation, route}) => {
 
