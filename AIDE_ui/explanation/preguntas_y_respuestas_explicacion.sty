@@ -1,0 +1,97 @@
+Para poder ver si han hecho click en el lugar correcto primero tengo que saber qué zona ocupa cada persona en la foto
+Para saber qué zona ocupa cada persona en la foto debo saber meter la ubicación manualmente, si no no me va a cuadrar
+Debo hacer un TouchableOpacity que ocupe esa zona o hacer un touchableOpacity de toda la foto y saber donde han picado con las coordenadas del toque
+Puedo implementar la otra actividad.
+
+Qué necesito para "Preguntas y respuestas"?
+Necesito que en la tabla haya los campos:
+- sexo
+- año_nacimiento
+- lugar_nacimiento
+- num_total_hijos
+- num_hijos
+- num_hijas
+- num_hermanos_totales
+- num_hermanos
+- num_hermanas
+- nombre_pareja
+- nombre_padre
+- nombre_madre
+
+Y que cuando el Tutor registre a un Senior meta esos datos.
+
+
+------------------------------------------------------------------------------------------------------------
+
+Según la actividad ejecutaremos la de las fotos (¿Quién es quién?) o esta (Preguntas y respuestas).
+
+Esta lo que hará será que obtendrá toda la info del senior y le hará 6 preguntas sobre esa info.
+
+--- EJEMPLO ---
+Le saldrá una pregunta que diga: ¿como te llamas?
+Y 3 opciones: 
+    Maria
+    Andrea
+    Ana
+Cada opción será un touchableOpacity y solo se debe tocar el correcto, si no lo tocas NO avanzará el juego
+
+Como se escogerán de manera random las opciones no correctas?
+
+NAME ------------------------------------------------------
+MOTHER_NAME -----------------------------------------------
+FATHER_NAME -----------------------------------------------
+PARTNER_NAME ----------------------------------------------
+Habrá 1 array de valores pares, por ejemplo "names":
+0: Ana, Anselmo
+1: Maria, Luis
+2: Roberta, Roberto
+3: Eugenia, Carlos
+4: Andrea, Fernando
+
+Dependiendo de si es de sexo femenino o masculino se escogeran de manera random 2 nombres y se sacará el primer componente del par o el segundo.
+Entonces se expondrán estos 2 y el de verdad.
+
+
+BIRTH_YEAR ------------------------------------------------
+Habrá 1 array con 5 años diferentes, "years":
+0: 1936
+1: 2002
+2: 1940
+3: 1927
+4: 1002
+
+De manera random se escogerán 2 de ellos + el de verdad 
+
+BIRTH_PLACE -----------------------------------------------
+Habrá 1 array con 5 sitios diferentes, "places":
+0: Madrid
+1: Barcelona
+2: Cádiz
+3: Sevilla
+4: En un país extrangero
+
+De manera random se escogerán 2 de ellos + el de verdad 
+
+NUM_SONS --------------------------------------------------
+NUM_DAUGTHERS ---------------------------------------------
+TOTAL_DAUGHTERS_N_SONS ------------------------------------
+NUM_BROTHERS ----------------------------------------------
+NUM_SISTERS -----------------------------------------------
+TOTAL_BROTHERS_N_SISTERS ----------------------------------
+Habrá 1 array con 5 cantidades diferentes, "nums":
+0: 3
+1: 2
+2: 1
+3: Ninguno
+4: 22
+
+De manera random se escogerán 2 de ellos + el de verdad 
+
+Las respuestas que no estén correctas se añadirán para hacerlas al final, se le dirá la respuesta correcta y se pasará a la siguiente pregunta.
+Cuando haya finalizado las 5 preguntas personales hará las que hayan sido mal contestadas. Sigue la misma lógica para cada pregunta, es decir, 
+si está mal la acumulará en las mal contestadas y así hasta que no haya ninguna mal contestada.
+
+
+
+
+

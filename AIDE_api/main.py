@@ -16,6 +16,8 @@ from passlib.exc import UnknownHashError
 from sqlalchemy import text
 import os
 from fastapi.staticfiles import StaticFiles
+from fastapi import UploadFile, File
+
 
 # to get a string like this run:
 # openssl rand -hex 32
@@ -47,6 +49,7 @@ class Token(BaseModel):
     access_token: str
     token_type: str
 
+# ---------------------------------
 
 class User_aide(BaseModel):
     id: int
@@ -104,7 +107,7 @@ class Activity(BaseModel):
 
 class CustomizedAct(BaseModel):
     id: int
-    senior_id: int
+    #senior_id: int
 
     class Config:
         orm_mode = True
@@ -261,6 +264,24 @@ async def login_for_access_token(
     )
     return {"access_token": access_token, "token_type": "bearer"}
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#########################################################################################
 # GET -----------------------------------------------------------------------------------
 
 # get a photo by id
@@ -273,7 +294,7 @@ def get_a_photo(photo_id:int):
     
     return photo
 
-# get a photo by name
+# get a list of the people in a specific photo (photo finded by name)
 @app.get('/{photo_file}/people',response_model=List[Person],status_code=status.HTTP_200_OK)
 def get_a_photo(photo_file:str):
     photo=db.query(models.Photo).filter(models.Photo.photo_file==photo_file).first()
@@ -296,7 +317,7 @@ def get_all_activities():
 
 
 # get all customized activities
-@app.get('/activities/customized_activities_by_senior',response_model=List[Activity], status_code=200)
+@app.get('/activities/customized_activities',response_model=List[Activity], status_code=200)
 def get_all_customized_activities():
     customized_activities=db.query(models.Activity).filter(models.Activity.id==models.CustomizedAct.id).all()
 
@@ -304,6 +325,7 @@ def get_all_customized_activities():
         raise HTTPException(status_code=400,detail="There're no customized activities")
 
     return customized_activities
+
 
 
 # get all generic activities
@@ -333,44 +355,45 @@ def get_an_activity(activity_id:int):
 def get_an_activity_reports(activity_id:int):
     reports=db.query(models.ReportActivity).filter(models.ReportActivity.activity_id==activity_id).all()
 
-    if reports is None:
+    if reports is None or reports == []:
         raise HTTPException(status_code=400,detail="There're no reports for this activity")
 
     return reports
 
-# get the reports from an activity by senior
+# get the reports from an activity by senior (list)
 @app.get('/activities/{activity_id}/senior/{senior_id}/reports',response_model=List[ReportActivity],status_code=status.HTTP_200_OK)
 def get_an_activity_senior_reports(activity_id:int, senior_id:int):
     reports=db.query(models.ReportActivity).filter(models.ReportActivity.activity_id==activity_id).filter(models.ReportActivity.senior_id==senior_id).all()
 
-    if reports is None:
-        raise HTTPException(status_code=400,detail="There're no reports for this activity")
+    if reports is None or reports == []:
+        raise HTTPException(status_code=400,detail="This senior never played this activity before")
 
     return reports
 
-# get if a senior  did an activity by searching his/her senior_id in report_activity
+# get the reports from an activity by senior (el primer report de la actividad que coincida)
+# get if a senior did an activity by searching his/her senior_id in report_activity TODO: pero no se puede mirar con la anterior...?? 
 @app.get('/activities/{activity_id}/report_by_senior_id/{id_senior}',response_model=ReportActivity,status_code=status.HTTP_200_OK)
 def get_a_report_by_senior_id(activity_id:int, id_senior:int):
     report=db.query(models.ReportActivity).filter(models.ReportActivity.senior_id==id_senior).filter(models.ReportActivity.activity_id==activity_id).first()
 
-    if report is None:
+    if report is None or report == []:
         raise HTTPException(status_code=400,detail="This senior never played this activity before")
 
     return report
 
 
 
-# get a senior name by id
+# get a senior name by id (get the name of the senior)
 @app.get('/seniors/{senior_id}',response_model=str,status_code=status.HTTP_200_OK)
 def get_a_senior(senior_id:int):
-    senior=db.query(models.User_aide).filter(models.User_aide.id==senior_id).first().name
+    senior=db.query(models.User_aide).filter(models.User_aide.id==senior_id).first()
     
     if senior is None:
         raise HTTPException(status_code=400,detail="Senior not found")
 
-    return senior
+    return senior.name
 
-# get a senior name by id
+# get a senior name by id (get the data of the senior)
 @app.get('/senior/{senior_id}',response_model=Senior,status_code=status.HTTP_200_OK)
 def get_a_senior(senior_id:int):
     senior=db.query(models.Senior).filter(models.Senior.id==senior_id).first()
@@ -380,14 +403,15 @@ def get_a_senior(senior_id:int):
 
     return senior
 
-# get the senior associated with a tutor
+# get the seniors data associated with a tutor by username
 @app.get('/tutors/{username}/seniors',response_model=List[Senior],status_code=status.HTTP_200_OK)
 def get_the_associated_seniors(username:str):
     user=db.query(models.User_aide).filter(models.User_aide.username==username).first()
-    tutor=db.query(models.Tutor).filter(models.Tutor.id==user.id).first()
     
-    if tutor is None:
+    if user is None:
         raise HTTPException(status_code=400,detail="Tutor not found")
+    else:
+        tutor=db.query(models.Tutor).filter(models.Tutor.id==user.id).first()
 
     return tutor.seniors
 
@@ -424,7 +448,7 @@ def get_a_user(username:str):
 # get a specific person position in a specific photo
 @app.get('/photos/{photo_id}/people/{person_id}',response_model=Position,status_code=status.HTTP_200_OK)
 def get_a_position(photo_id:int, person_id:int):
-    person_position=db.query(models.Position).filter(models.Position.id_photo==photo_id and models.Position.id_person==person_id).first()
+    person_position=db.query(models.Position).filter(models.Position.id_photo==photo_id).filter(models.Position.id_person==person_id).first()
 
     if person_position is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Position not found")
@@ -457,7 +481,7 @@ def get_photo_id_by_name(person_name:str, person_surname:str ):
     person=db.query(models.Person).filter(models.Person.name==person_name).filter(models.Person.surname==person_surname).first()
 
     if person is None:
-        raise HTTPException(status_code=400,detail="Photo not found")
+        raise HTTPException(status_code=400,detail="Person not found")
 
     return person
 
@@ -465,46 +489,61 @@ def get_photo_id_by_name(person_name:str, person_surname:str ):
 # get the activities a senior played
 @app.get('/senior/{senior_id}/playedactivities',response_model=List[Activity], status_code=200)
 def get_all_played_activities(senior_id:int):
-    senior_activities=db.query(models.SeniorActivity).filter(models.SeniorActivity.id_senior==senior_id).all()
-    activities = []
+    senior = db.query(models.User_aide).filter(models.User_aide.id==senior_id).first()
+    if senior is None:
+        raise HTTPException(status_code=400,detail="User not found")
+    else:
+        senior_activities=db.query(models.SeniorActivity).filter(models.SeniorActivity.id_senior==senior_id).all()
+        activities = []
 
-    if senior_activities is None:
-        raise HTTPException(status_code=400,detail="There're no played activities")
+        if senior_activities is None or senior_activities == []:
+            raise HTTPException(status_code=400,detail="There're no played activities yet")
 
-    for senior_activity in senior_activities:
-        activity = db.query(models.Activity).filter(models.Activity.id == senior_activity.id_activity).first()
-        if activity:
-            activities.append(activity)
+        for senior_activity in senior_activities:
+            activity = db.query(models.Activity).filter(models.Activity.id == senior_activity.id_activity).first()
+            if activity:
+                activities.append(activity)
 
     return activities
 
 # get the customizedactivities from a specific senior
-@app.get('/customized_activities_by_senior/{senior_id}',response_model=List[CustomizedAct], status_code=200)
+@app.get('/customized_activities_by_senior/{senior_id}',response_model=List[Activity], status_code=200)
 def get_all_senior_customized_activities(senior_id:int):
-    senior_customized_activities=db.query(models.Senior).filter(models.Senior.id==senior_id).first()
-
-    if senior_customized_activities is None:
-        raise HTTPException(status_code=400,detail="There're no customized activities")
-
-    return senior_customized_activities.customized_activities
+    senior = db.query(models.User_aide).filter(models.User_aide.id==senior_id).first()
+    if senior is None:
+        raise HTTPException(status_code=400,detail="User not found")
+    else:
+        customized_activities=db.query(models.SeniorActivity).filter(models.SeniorActivity.id_senior==senior_id).all()    
+        #ahora deberia recorrer este array de seniorActivity y por cada id de lo que obtenga debería ir a buscar su actividad completa a Activity y devolver eso 
+        activities = []
+        for activity in customized_activities:
+            activity = db.query(models.Activity).filter(models.Activity.id == activity.id_activity).first()
+            if activity:
+                activities.append(activity)
+    return activities
 
 # get the photos of a specific customized activity
 @app.get('/customized_activities/{customized_activity_id}/photos',response_model=List[Photo], status_code=200)
 def get_all_customized_activity_photos(customized_activity_id:int):
-    customized_activity_photos=db.query(models.PhotoCustomized).filter(models.PhotoCustomized.id_activity==customized_activity_id).all()
+    
+    activity = db.query(models.CustomizedAct).filter(models.CustomizedAct.id==customized_activity_id).first()
+    if activity is None:
+        raise HTTPException(status_code=400,detail="Activity not found")
+    else:
+        customized_activity_photos=db.query(models.PhotoCustomized).filter(models.PhotoCustomized.id_activity==customized_activity_id).all()
 
-    if customized_activity_photos is None:
-        raise HTTPException(status_code=400,detail="There're no photos in this activity")
-    # Utilizamos una lista para almacenar las fotos correspondientes a cada "id_photo"
-    photos = []
+        if customized_activity_photos is None:
+            raise HTTPException(status_code=400,detail="There're no photos in this activity")
+        # Utilizamos una lista para almacenar las fotos correspondientes a cada "id_photo"
+        photos = []
 
-    for photo in customized_activity_photos:
-        # Buscamos la foto en la tabla "Photo" usando el campo "id_photo"
-        photo_data = db.query(models.Photo).filter(models.Photo.id == photo.id_photo).first()
-        if photo_data:
-            photos.append(photo_data)
-        else:
-            raise HTTPException(status_code=404, detail=f"Photo with id_photo={photo.id_photo} not found")
+        for photo in customized_activity_photos:
+            # Buscamos la foto en la tabla "Photo" usando el campo "id_photo"
+            photo_data = db.query(models.Photo).filter(models.Photo.id == photo.id_photo).first()
+            if photo_data:
+                photos.append(photo_data)
+            else:
+                raise HTTPException(status_code=404, detail=f"Photo with id_photo={photo.id_photo} not found")
 
     return photos
 
@@ -512,22 +551,22 @@ def get_all_customized_activity_photos(customized_activity_id:int):
 
 # post a new user
 @app.post('/users',response_model=User_aide, status_code=status.HTTP_201_CREATED)
-def create_a_tutor(tutor: User_aide, response: Response):
-    db_tutor=db.query(models.User_aide).filter(models.User_aide.id==tutor.id).first()
+def create_a_user(user: User_aide):
+    db_user=db.query(models.User_aide).filter(models.User_aide.username==user.username).first()
     query = text('SELECT MAX(id) FROM User_aide')
     db_id = db.execute(query).scalar()
-    if db_tutor is not None:
-        raise HTTPException(status_code=400,detail="User already exists")
+    if db_user:
+        raise HTTPException(status_code=400,detail="User already exists. Try another username, please.")
     
     new_user=models.User_aide(
         id=db_id + 1,
-        name=tutor.name,
-        username=tutor.username,
-        mail=tutor.mail,
-        password=tutor.password,
-        type=tutor.type
+        name=user.name,
+        username=user.username,
+        mail=user.mail,
+        password=user.password,
+        type=user.type
     )
-
+    
     db.add(new_user)
     db.commit()
 
@@ -538,14 +577,17 @@ def create_a_tutor(tutor: User_aide, response: Response):
 @app.post('/users/tutors/{tutor_id}',response_model=Tutor, status_code=status.HTTP_201_CREATED)
 def create_a_tutor(tutor_id:int):
     db_tutor=db.query(models.User_aide).filter(models.User_aide.id==tutor_id).first()
-
+    db_tutor_tutor=db.query(models.Tutor).filter(models.Tutor.id==tutor_id).first()
+    
     if db_tutor is None:
         raise HTTPException(status_code=400,detail="User does not exists")
+    elif db_tutor_tutor: #si esta en la tabla de los tutores no se pondrá otra vez
+        raise HTTPException(status_code=400,detail="User is already a tutor.")
     
     new_tutor=models.Tutor(
         id=db_tutor.id
     )
-      
+    
     db.add(new_tutor)
     db.commit()
 
@@ -554,14 +596,22 @@ def create_a_tutor(tutor_id:int):
 # post a new senior
 @app.post('/users/tutor/{tutor_username}/seniors/{senior_id}',response_model=Senior, status_code=status.HTTP_201_CREATED)
 def create_a_senior(senior: Senior, senior_id:int, tutor_username:str):
+
     db_senior=db.query(models.User_aide).filter(models.User_aide.id==senior_id).first()
     db_tutor=db.query(models.User_aide).filter(models.User_aide.username==tutor_username).first()
-
+    db_senior_senior=db.query(models.Senior).filter(models.Senior.id==senior_id).first()
+    tutor_id=db.query(models.User_aide).filter(models.User_aide.username==tutor_username).first().id
     if db_senior is None:
         raise HTTPException(status_code=400,detail="User does not exists")
     
     if db_tutor is None:
         raise HTTPException(status_code=400,detail="Tutor does not exists")
+    
+    if db_senior_senior: #si esta en la tabla de los seniors no se pondrá otra vez
+        raise HTTPException(status_code=400,detail="User is already a senior.")
+    
+    if tutor_id==senior_id:
+        raise HTTPException(status_code=400,detail="Tutor can't be a tutor of the tutor.")
 
     new_senior=models.Senior(
         id=db_senior.id,
@@ -583,61 +633,63 @@ def create_a_senior(senior: Senior, senior_id:int, tutor_username:str):
         father_name=senior.father_name,
         mother_name=senior.mother_name
     )
-      
+    
     db.add(new_senior)
     db.commit()
 
     return Response(content=f"New senior with id {new_senior.id} added")
 
-
-
 # post a photo
 @app.post('/photos',response_model=Photo, status_code=status.HTTP_201_CREATED)
-def create_a_photo(photo: Photo, response: Response):
-    db_photo=db.query(models.Photo).filter(models.Photo.id==photo.id).first()
-    query = text('SELECT MAX(id) FROM Photo')
-    db_id = db.execute(query).scalar()
-    
-    if db_photo is not None:
-        raise HTTPException(status_code=400,detail="Photo already exists")
-    
-    new_photo=models.Photo(
-        id=db_id + 1,
-        description=photo.description,
-        photo_file=photo.photo_file,
-        upload=photo.upload
-    )
+async def create_a_photo(description: str, photo_file: UploadFile, upload: int):
+    try:
+        query = text('SELECT MAX(id) FROM Photo')
+        db_id = db.execute(query).scalar()
+        
+        # Lee el contenido del archivo
+        photo_content = await photo_file.read()
+        
+        new_photo=models.Photo(
+            id=db_id + 1,
+            description=description,
+            photo_file=photo_content,
+            upload=upload
+        )
+        # codificar la foto en base64
+        db.add(new_photo)
+        db.commit()
 
-    db.add(new_photo)
-    db.commit()
-
-    return Response(content=f"New photo with id {new_photo.id} added")
-
+        return Response(content=f"New photo with id {new_photo.id} added")
+    except:
+        db.rollback()
 
 # post a person
 @app.post('/people',response_model=Person, status_code=status.HTTP_201_CREATED)
 def create_a_person(person:Person):
-    db_person=db.query(models.Person).filter(models.Person.id==person.id).first()
-    query = text('SELECT MAX(id) FROM Person')
-    db_id = db.execute(query).scalar()
-    
-    if db_person is not None:
-        raise HTTPException(status_code=400,detail="Person already exists")
-    
-    new_person=models.Person(
-        id=db_id + 1,
-        name=person.name,
-        surname=person.surname,
-        sex=person.sex,
-        skin_color=person.skin_color,
-        eyes_color=person.eyes_color,
-        familiar_rank=person.familiar_rank
-    )
+    try:
+        db_person=db.query(models.Person).filter(models.Person.id==person.id).first()
+        query = text('SELECT MAX(id) FROM Person')
+        db_id = db.execute(query).scalar()
+        
+        if db_person is not None:
+            raise HTTPException(status_code=400,detail="Person already exists")
+        
+        new_person=models.Person(
+            id=db_id + 1,
+            name=person.name,
+            surname=person.surname,
+            sex=person.sex,
+            skin_color=person.skin_color,
+            eyes_color=person.eyes_color,
+            familiar_rank=person.familiar_rank
+        )
 
-    db.add(new_person)
-    db.commit()
+        db.add(new_person)
+        db.commit()
 
-    return Response(content=f"New person with id {new_person.id} added")
+        return Response(content=f"New person with id {new_person.id} added.")
+    except:
+        db.rollback()
 
 
 # post de un report de una actividad
@@ -645,6 +697,15 @@ def create_a_person(person:Person):
 def create_a_report(report:ReportActivity, id_senior:int, id_activity:int):
     existing_report = db.query(models.ReportActivity).filter(models.ReportActivity.senior_id == id_senior).filter(models.ReportActivity.activity_id == id_activity).first()
     
+    db_senior=db.query(models.User_aide).filter(models.User_aide.id==id_senior).first()
+    db_activity=db.query(models.Activity).filter(models.User_aide.id==id_activity).first()
+    
+    if db_senior is None:
+        raise HTTPException(status_code=400,detail="User does not exists")
+    
+    if db_activity is None:
+        raise HTTPException(status_code=400,detail="Activity does not exists")
+
     if existing_report is not None:
         raise HTTPException(status_code=400, detail="Report already exists")
     
@@ -659,46 +720,50 @@ def create_a_report(report:ReportActivity, id_senior:int, id_activity:int):
     db.add(new_report)
     db.commit()
 
-    return new_report
+    return Response(content=f"New report from senior {id_senior} to {id_activity} activity added.")
+
 
 
 # post a position in a photo
 @app.post('/photos/{id_photo}/people/{id_person}/position',response_model=Position, status_code=status.HTTP_201_CREATED)
 def create_a_position(id_photo:int,id_person:int,position:Position):
-    photo=db.query(models.Photo).filter(models.Photo.id==id_photo).first()
-    person=db.query(models.Person).filter(models.Person.id==id_person).first()
-    
-    if photo is None:
-        raise HTTPException(status_code=400,detail="Photo not found")
-    
-    elif person is None:
-        raise HTTPException(status_code=400,detail="Person not found")
-    
-    else:
-        db_position=db.query(models.Position).filter(models.Position.id_photo==id_photo).filter(models.Position.id_person==id_person).first()
+    try:
+        photo=db.query(models.Photo).filter(models.Photo.id==id_photo).first()
+        person=db.query(models.Person).filter(models.Person.id==id_person).first()
         
-        if db_position is not None:
-            raise HTTPException(status_code=400,detail="Position with the id_person and the id_photo already exists")
-   
-    new_position=models.Position(
-        id_photo=position.id_photo,
-        id_person=position.id_person,
-        x_inf=position.x_inf,
-        y_inf=position.y_inf,
-        x_sup=position.x_sup,
-        y_sup=position.y_sup,
-        hair_color=position.hair_color,
-        voice_record=position.voice_record,
-        sunglasses=position.sunglasses,
-        glasses=position.glasses,
-        clothes_color=position.clothes_color
-    )
+        if photo is None:
+            raise HTTPException(status_code=400,detail="Photo not found")
+        
+        elif person is None:
+            raise HTTPException(status_code=400,detail="Person not found")
+        
+        else:
+            db_position=db.query(models.Position).filter(models.Position.id_photo==id_photo).filter(models.Position.id_person==id_person).first()
+            
+            if db_position is not None:
+                raise HTTPException(status_code=400,detail="Position with the id_person and the id_photo already exists")
     
+        new_position=models.Position(
+            id_photo=position.id_photo,
+            id_person=position.id_person,
+            x_inf=position.x_inf,
+            y_inf=position.y_inf,
+            x_sup=position.x_sup,
+            y_sup=position.y_sup,
+            hair_color=position.hair_color,
+            voice_record=position.voice_record,
+            sunglasses=position.sunglasses,
+            glasses=position.glasses,
+            clothes_color=position.clothes_color
+        )
+        
 
-    db.add(new_position)
-    db.commit()
+        db.add(new_position)
+        db.commit()
 
-    return Response(content=f"New position with person {new_position.id_person} in photo {new_position.id_photo} added")
+        return Response(content=f"New position with person {new_position.id_person} in photo {new_position.id_photo} added")
+    except:
+        db.rollback()
 
 
 # PUT -----------------------------------------------------------------------------------
@@ -706,17 +771,20 @@ def create_a_position(id_photo:int,id_person:int,position:Position):
 # update something in a photo
 @app.put('/photos/{photo_id}',response_model=Photo,status_code=status.HTTP_200_OK)
 def update_a_photo(photo_id:int,photo:Photo):
-
-    if photo_to_update is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Photo not found")
-    else:
+    try:
         photo_to_update=db.query(models.Photo).filter(models.Photo.id==photo_id).first()
-        photo_to_update.description=photo.description
-        photo_to_update.upload = photo.upload
 
-    db.commit()
-    
-    return Response(content=f"Photo with id {photo_id} updated")
+        if photo_to_update is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Photo not found")
+        else:
+            photo_to_update.description=photo.description
+            photo_to_update.upload = photo.upload
+
+        db.commit()
+        
+        return Response(content=f"Photo with id {photo_id} updated")
+    except:
+        db.rollback()
 
 # update de la score, el time_playing y el number_of_tries de un senior_activity
 @app.put('/activities/{activity_id}/report_by_senior_id/{senior_id}',response_model=ReportActivity,status_code=status.HTTP_200_OK)
@@ -726,44 +794,55 @@ def update_a_report(activity_id:int,senior_id: int, report:ReportActivity):
         db_number_of_tries = db.execute(query, {"activity_id": activity_id, "senior_id": senior_id}).scalar()
 
         report_to_update = db.query(models.ReportActivity).filter(models.ReportActivity.senior_id == senior_id).filter(models.ReportActivity.activity_id == activity_id).first()
-        report_to_update.score = report.score
-        report_to_update.time_playing = report.time_playing
-        report_to_update.number_of_tries = db_number_of_tries + 1
+        activity=db.query(models.Activity).filter(models.Activity.id == activity_id).first()
+        senior=db.query(models.User_aide).filter(models.User_aide.id == senior_id).first()
+        
+
+        if activity is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Activity not found")
+        elif senior is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Senior not found")
+        else:
+            report_to_update.score = report.score
+            report_to_update.time_playing = report.time_playing
+            report_to_update.number_of_tries = db_number_of_tries + 1
 
         db.commit()
         
-        return report_to_update
+        return Response(content=f"Report for activity {activity_id} from user {senior_id} updated")
 
-    except Exception as e:
+    except:
         # Manejar el error de alguna manera apropiada (registrar, lanzar una excepción personalizada, etc.)
         db.rollback()  # Revertir la transacción en caso de error
-        raise e
 
 
 # update a position on a specific person in a specific photo
 @app.put('/photos/{photo_id}/people/{person_id}',response_model=Position,status_code=status.HTTP_200_OK)
 def update_person_position_from_a_photo(photo_id:int, person_id:int, position:Position):
-    person_position_to_update=db.query(models.Position).filter(models.Position.id_photo==photo_id and models.Position.id_person==person_id).first()
-    
-    if person_position_to_update is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Position not found")
-    
-    else:
-        person_position_to_update.id_photo=position.id_photo
-        person_position_to_update.id_person=position.id_person
-        person_position_to_update.x_inf=position.x_inf
-        person_position_to_update.y_inf=position.y_inf
-        person_position_to_update.x_sup=position.x_sup
-        person_position_to_update.y_sup=position.y_sup
-        person_position_to_update.hair_color=position.hair_color
-        person_position_to_update.voice_record=position.voice_record
-        person_position_to_update.sunglasses=position.sunglasses
-        person_position_to_update.glasses=position.glasses
-        person_position_to_update.clothes_color=position.clothes_color
+    try:
+        person_position_to_update=db.query(models.Position).filter(models.Position.id_photo==photo_id and models.Position.id_person==person_id).first()
+        
+        if person_position_to_update is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Position not found")
+        
+        else:
+            person_position_to_update.id_photo=position.id_photo
+            person_position_to_update.id_person=position.id_person
+            person_position_to_update.x_inf=position.x_inf
+            person_position_to_update.y_inf=position.y_inf
+            person_position_to_update.x_sup=position.x_sup
+            person_position_to_update.y_sup=position.y_sup
+            person_position_to_update.hair_color=position.hair_color
+            person_position_to_update.voice_record=position.voice_record
+            person_position_to_update.sunglasses=position.sunglasses
+            person_position_to_update.glasses=position.glasses
+            person_position_to_update.clothes_color=position.clothes_color
 
-    db.commit()
+        db.commit()
 
-    return Response(content=f"Position with photo_id {photo_id} and person_id {person_id} updated")
+        return Response(content=f"Position with photo_id {photo_id} and person_id {person_id} updated")
+    except:
+        db.rollback()
 
 
 
@@ -772,27 +851,36 @@ def update_person_position_from_a_photo(photo_id:int, person_id:int, position:Po
 # delete photo
 @app.delete('/photos/{photo_id}')
 def delete_photo(photo_id:int):
-    photo_to_delete=db.query(models.Photo).filter(models.Photo.id==photo_id).first()
+    try:
+        photo_to_delete=db.query(models.Photo).filter(models.Photo.id==photo_id).first()
 
-    if photo_to_delete is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Photo not found")
+        if photo_to_delete is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Photo not found")
 
-    db.delete(photo_to_delete)
-    db.commit()
+        db.delete(photo_to_delete)
+        db.commit()
 
-    return Response(content=f"Photo with id {photo_id} deleted")
+        return Response(content=f"Photo with id {photo_id} deleted")
+    except:
+        db.rollback()
 
 
 # delete a specific person in a specific photo
 @app.delete('/photos/{photo_id}/people/{person_id}')
 def delete_person_from_a_photo(photo_id:int, person_id:int):
-    person_to_delete=db.query(models.Position).filter(models.Position.id_photo==photo_id and models.Position.id_person==person_id).first()
-    
-    if person_to_delete is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Person not found")
+    try:
+        person_to_delete=db.query(models.Position).filter(models.Position.id_photo==photo_id).filter(models.Position.id_person==person_id).first()
+        photo=db.query(models.Photo).filter(models.Photo.id==photo_id).first()
+        
+        if person_to_delete is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Person not found")
+        elif photo is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Photo not found")
 
-    db.delete(person_to_delete)
-    db.commit()
+        db.delete(person_to_delete)
+        db.commit()
 
 
-    return Response(content=f"Person with id {person_id} deleted from photo with id {photo_id}")
+        return Response(content=f"Person with id {person_id} deleted from photo with id {photo_id}")
+    except:
+        db.rollback()

@@ -1,7 +1,7 @@
 
 INSERT INTO user_aide (name, username, mail, password, type) VALUES ('John Doe', 'JD','JD@gmail.es','1234', 'tutor');
-INSERT INTO user_aide (name, username, mail, password, type) VALUES ('Sarah Castello','SC','SC@gmail.es','$2b$12$Itxz5DwBPiJ7Ypi65.YtkeRN2Bnk7vlMhLZZkdNFuiGJM.TdD/CK6','senior');
-INSERT INTO user_aide (name, username, mail, password, type) VALUES ('Allan Poe','AP','AP@gmail.es','$2b$12$mPcnbGWmbm7X3Tui7MLsoOrCemeK8K5WM85wl6Ri8ASqmrft985wm','senior');
+INSERT INTO user_aide (name, username, mail, password, type) VALUES ('Sarah Castello','SC','SC@gmail.es','abcd','senior');
+INSERT INTO user_aide (name, username, mail, password, type) VALUES ('Allan Poe','AP','AP@gmail.es','abcd','senior');
 
 
 INSERT INTO tutor (id) VALUES (1);
@@ -12,7 +12,6 @@ INSERT INTO senior (id, total_playing_time, hour_start_avg, hour_finish_avg, sco
 
 
 INSERT INTO activity (name, description, demo_video, photo_file, num_answers) VALUES ('Relaciona las imágenes', 'actividad en la que se trabaja la memoria','ccc','memoria', 4);
-INSERT INTO activity (name, description, demo_video, photo_file, num_answers) VALUES ('Preguntas y respuestas?', 'actividad sobre miembros de la familia','aaa','images', 10);
 INSERT INTO activity (name, description, demo_video, photo_file, num_answers) VALUES ('Qué símbolo era ese?', 'trabaja memoria retentiva','hhh','juegos-de-cartas', 8);
 INSERT INTO activity (name, description, demo_video, photo_file, num_answers) VALUES ('Preguntas y respuestas', 'trabaja la coordinación y la atención, se trata de darle a las mariposas a medida que van volando por la pantalla del dispositivo','ppp','images', 12);
 INSERT INTO activity (name, description, demo_video, photo_file, num_answers) VALUES ('¿Quien es quien?', 'esta actividad trabaja reminiscencia, coordinación y atención','ppp','arbol-genealógico', 6);
@@ -22,21 +21,16 @@ INSERT INTO activity (name, description, demo_video, photo_file, num_answers) VA
 INSERT INTO activity (name, description, demo_video, photo_file, num_answers) VALUES ('Busca las diferencias', 'trabaja la atención','ppp','images', 12);
 
 
-INSERT INTO customized_act (id,senior_id) VALUES (2,2);
-INSERT INTO customized_act (id,senior_id) VALUES (5,3);
-INSERT INTO customized_act (id,senior_id) VALUES (4,3);
-INSERT INTO customized_act (id,senior_id) VALUES (1,2);
-INSERT INTO customized_act (id,senior_id) VALUES (3,2);
-INSERT INTO customized_act (id,senior_id) VALUES (6,2);
+INSERT INTO customized_act (id) VALUES (3);
+INSERT INTO customized_act (id) VALUES (4);
+INSERT INTO customized_act (id) VALUES (6);
 
 
 INSERT INTO generic_act (id) VALUES (1);
-INSERT INTO generic_act (id) VALUES (3);
-INSERT INTO generic_act (id) VALUES (6);
+INSERT INTO generic_act (id) VALUES (2);
+INSERT INTO generic_act (id) VALUES (5);
 INSERT INTO generic_act (id) VALUES (7);
 INSERT INTO generic_act (id) VALUES (8);
-INSERT INTO generic_act (id) VALUES (9);
-
 
 
 INSERT INTO report_activity (time_playing, number_of_tries, score, senior_id, activity_id) VALUES ('00:30:00', 3, 6, 2, 1);
@@ -69,18 +63,18 @@ INSERT INTO position (id_photo, id_person, x_inf, y_inf, x_sup, y_sup, hair_colo
 INSERT INTO position (id_photo, id_person, x_inf, y_inf, x_sup, y_sup, hair_color, voice_record, sunglasses, glasses, clothes_color) VALUES (4,1,0,0,1,2,'pelirrojo','iwbsb',true,false,'negro');
 
 
-INSERT INTO photo_customized (id_photo, id_activity) VALUES (2,2);
+INSERT INTO photo_customized (id_photo, id_activity) VALUES (2,3);
 INSERT INTO photo_customized (id_photo, id_activity) VALUES (3,3);
-INSERT INTO photo_customized (id_photo, id_activity) VALUES (4,3);
-INSERT INTO photo_customized (id_photo, id_activity) VALUES (1,2);
-INSERT INTO photo_customized (id_photo, id_activity) VALUES (2,5);
-INSERT INTO photo_customized (id_photo, id_activity) VALUES (3,5);
-INSERT INTO photo_customized (id_photo, id_activity) VALUES (4,5);
+INSERT INTO photo_customized (id_photo, id_activity) VALUES (6,3);
+INSERT INTO photo_customized (id_photo, id_activity) VALUES (6,4);
+INSERT INTO photo_customized (id_photo, id_activity) VALUES (2,4);
+INSERT INTO photo_customized (id_photo, id_activity) VALUES (5,4);
+INSERT INTO photo_customized (id_photo, id_activity) VALUES (4,6);
 INSERT INTO photo_customized (id_photo, id_activity) VALUES (1,6);
 
 
-INSERT INTO senior_activity (id_senior, id_activity) VALUES (2,1);
-INSERT INTO senior_activity (id_senior, id_activity) VALUES (2,2);
-
-
-
+INSERT INTO senior_activity (id_senior, id_activity) VALUES (2,3);
+INSERT INTO senior_activity (id_senior, id_activity) VALUES (2,4);
+INSERT INTO senior_activity (id_senior, id_activity) VALUES (2,6);
+INSERT INTO senior_activity (id_senior, id_activity) VALUES (3,4);
+INSERT INTO senior_activity (id_senior, id_activity) VALUES (3,3);

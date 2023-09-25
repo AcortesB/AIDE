@@ -16,7 +16,9 @@
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-native": "0.71.8",
+    "react-native-document-picker": "^9.0.1",
     "react-native-file-picker": "^0.0.21",
+    "react-native-image-picker": "^7.0.0",
     "react-native-toast-message": "^2.1.6",
     "react-native-web": "~0.18.10",
     "react-toastify": "^9.1.3"

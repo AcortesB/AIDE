@@ -1,0 +1,24 @@
+//LoginScreen
+//SignupScreen
+//ChargedLoginScreen
+//TutorHomeScreen
+//TutorSeniorFoldersScreen
+//TutorAddSeniorScreen
+//TutorSeniorReportScreen
+//TutorSeniorActivityInfoScreen
+//TutorSeniorActivityScoresScreen
+//TutorGetPhotoScreen
+//TutorPhotosGaleryScreen
+//TutorAddPhotoDescriptionScreen
+//TutorAddPhotoPeopleScreen
+//TutorAddPhotoPersonScreen
+//TutorAddPhotoPositionScreen
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+//SeniorWelcomeScreen
+//SeniorHomeScreen
+//SeniorGamesScreen
+//SeniorFamilyScreen
+//SeniorStartActivityScreen
+//SeniorActivityFinishedScreen

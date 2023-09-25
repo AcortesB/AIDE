@@ -65,7 +65,7 @@ class Senior(Base):
     
     activities = relationship('Activity', secondary='senior_activity')
     tutor = relationship("Tutor", back_populates="seniors")
-    customized_activities = relationship("CustomizedAct", back_populates="senior")
+    #customized_activities = relationship("CustomizedAct", back_populates="senior")
     reports = relationship("ReportActivity",back_populates="senior")
 
     def __init__(self, id, total_playing_time, hour_start_avg, hour_finish_avg, score_avg, tutor_id, sex, birth_year, birth_place, descendants_num, sons_num, daughters_num, siblings_num, brothers_num, sisters_num, partner_name, father_name, mother_name ):
@@ -108,7 +108,6 @@ class Activity(Base):
     
     reports = relationship("ReportActivity", back_populates="activity")
     seniors = relationship('Senior', secondary='senior_activity')
-    #seniors = relationship("Senior",secondary="SeniorActivity", back_populates="activities")
 
     def __init__(self, id, name, description, demo_video, photo_file, num_answers):
         self.id = id
@@ -127,10 +126,10 @@ class CustomizedAct(Base):
     __tablename__ = "customized_act"
 
     id = Column("id",Integer, ForeignKey("activity.id", ondelete="CASCADE", onupdate="CASCADE"), primary_key=True, nullable=False)
-    senior_id = Column("senior_id", Integer, ForeignKey("senior.id"), nullable=False)
-    senior = relationship("Senior", back_populates="customized_activities")
-    #photos = relationship("Photo", secondary="PhotoCustomized", back_populates="customized_activities")
-    photos = relationship('Photo', secondary='photo_customized')
+    #senior_id = Column("senior_id", Integer, ForeignKey("senior.id"), nullable=False)
+    
+    #senior = relationship("Senior", back_populates="customized_activities")
+    #photos = relationship('Photo', secondary='photo_customized')
     
     def __init__(self, id):
         self.id = id
@@ -183,7 +182,7 @@ class Photo(Base):
     photo_file = Column("photo_file", String, nullable=False)
     upload = Column("upload", Integer, ForeignKey("tutor.id", ondelete="CASCADE", onupdate="CASCADE"), nullable=False)
     
-    customized_activities = relationship('CustomizedAct', secondary='photo_customized')
+    #customized_activities = relationship('CustomizedAct', secondary='photo_customized')
     people = relationship('Person', secondary='position')
 
     def __init__(self, id, description, photo_file, upload ):
