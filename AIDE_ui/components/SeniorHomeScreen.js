@@ -4,6 +4,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import React, { useEffect, useState } from 'react';
 import { styles } from '../styles'; // Import the styles object from styles.js
+import { serverurl } from '../config.js'
 
 const SeniorHomeScreen = ({navigation, route}) => {
   const { senior_nickname, senior_password, senior_name } = route.params;

@@ -4,6 +4,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import React, { useEffect, useState } from 'react';
 import { styles } from '../styles'; // Import the styles object from styles.js
+import { serverurl } from '../config.js'
 
 const TutorSeniorActivityScoresScreen = ({navigation, route}) => {
   const { tutor_nickname, tutor_password, selected_senior, selected_activity} = route.params;
@@ -13,11 +14,11 @@ const TutorSeniorActivityScoresScreen = ({navigation, route}) => {
   
   //fetch para coger la info de la activity deseada
   useEffect(() => {
-    fetch('http://127.0.0.1:8000/activities/'+selected_activity.id+'/senior/'+selected_senior.senior_id+'/reports')
+    fetch(serverurl+'/activities/'+selected_activity.id+'/senior/'+selected_senior.senior_id+'/reports')
       .then(response => response.json())
       .then(reportsData => {
         setReports(reportsData);
-        
+        //console.log("reportsData:",reportsData)
         // Calcular la suma de los puntajes cuando se actualizan los informes
         for (let i = 0; i < reportsData.length; i++) {
           suma += reportsData[i].score;
@@ -38,7 +39,7 @@ const TutorSeniorActivityScoresScreen = ({navigation, route}) => {
         <Text style={[styles.tutorTextBold, styles.textSpacing]}>{selected_senior.name}</Text> 
         
         {reports.map((report, i) => (
-          <Text style={[styles.tutorText, styles.textSpacing]} key={i}>Intento número {i + 1}:        {report.score}/{selected_activity.num_answers}</Text>
+          <Text style={[styles.tutorText, styles.textSpacing]} key={i}>Intento número {i + 1}:        {report.num_act_answers}/{report.score}</Text>
         ))}
       </View>
     </View>

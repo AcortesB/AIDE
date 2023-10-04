@@ -4,6 +4,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import React, { useEffect, useState } from 'react';
 import { styles } from '../styles'; // Import the styles object from styles.js
+import { serverurl } from '../config.js'
 
 const TutorGetPhotoScreen = ({navigation, route}) => {
   const { tutor_nickname, tutor_password, selected_senior, selected_photo } = route.params;
@@ -15,7 +16,7 @@ const TutorGetPhotoScreen = ({navigation, route}) => {
 
   useEffect(() => {
     // cogemos la foto
-    fetch('http://127.0.0.1:8000/photos/' + selected_photo.id + '') 
+    fetch(serverurl+'/photos/' + selected_photo.id + '') 
       .then(response => response.json())
       .then(photo_info => {
         console.log("Got the photo info")
@@ -23,7 +24,7 @@ const TutorGetPhotoScreen = ({navigation, route}) => {
         setPhotoInfo(photo_info)
         
         // cogemos la lista de personas que sale en la foto
-        const fetchPromises = fetch('http://127.0.0.1:8000/photos/' + photo_info.id + '/people')
+        const fetchPromises = fetch(serverurl+'/photos/' + photo_info.id + '/people')
           .then(response => response.json())
           .then(people_list => {
             console.log("Got the people list")
@@ -71,7 +72,7 @@ const TutorGetPhotoScreen = ({navigation, route}) => {
         <View style={styles.GetPhotoContainer}>
           {photo && (
             <Image
-              source={{ uri: `http://localhost:8000/uploads/${photo.photo_file}.jpg` }}
+              source={{ uri: `http://localhost:8000/uploads/${photo.photo_file}` }}
               style={styles.image}
             />
           )}

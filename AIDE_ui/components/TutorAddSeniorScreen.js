@@ -4,6 +4,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import React, { useEffect, useState } from 'react';
 import { styles } from '../styles'; // Import the styles object from styles.js
+import { serverurl } from '../config.js'
 
 const TutorAddSeniorScreen = ({navigation, route}) => {
 
@@ -23,14 +24,16 @@ const TutorAddSeniorScreen = ({navigation, route}) => {
   const [partner_name, setPartnerName] = useState("");
   const [mother_name, setMotherName] = useState("");
   const [father_name, setFatherName] = useState("");
-
-  const sexOptions = ["Masculino", "Femenino"];  const [birth_year, setBirthYear] = useState(""); //opciones para el desplegable
+  const [birth_year, setBirthYear] = useState(""); //opciones para el desplegable
+  
+  const sexOptions = ["Masculino", "Femenino"];  
+  
 
 
 
   const handleSeniorSignup = () => {
 
-    fetch('http://127.0.0.1:8000/users', {
+    fetch(serverurl+'/users', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -49,12 +52,12 @@ const TutorAddSeniorScreen = ({navigation, route}) => {
         console.log(response.ok)
         if (response.ok) {
           
-          fetch('http://127.0.0.1:8000/users/'+nickname+'')
+          fetch(serverurl+'/users/'+nickname+'')
               .then(response1 => response1.json())
               .then(seniorData => {
                 console.log(seniorData.id)
 
-                fetch('http://127.0.0.1:8000/users/tutor/'+tutor_nickname+'/seniors/'+seniorData.id+'', { //hacemos post del usuario en Tutor
+                fetch(serverurl+'/users/tutor/'+tutor_nickname+'/seniors/'+seniorData.id+'', { //hacemos post del usuario en Tutor
                   method: 'POST',
                   headers: {
                     'Content-Type': 'application/json',
@@ -84,8 +87,24 @@ const TutorAddSeniorScreen = ({navigation, route}) => {
                   console.log(response2.ok)
                   if (response2.ok) {
                     console.log(tutor_nickname)
-                    navigation.push('TutorHome', { nickname: tutor_nickname, password: tutor_password }); //si ha salido bien nos iremos al charged login
-                    
+                    //post del senior con todas las customized activities
+                    fetch(serverurl+'/associate_customized_activities/'+seniorData.id, {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                      },
+                      body: JSON.stringify({
+                        id_senior: seniorData.id,
+                        id_activity: 0
+                      }),
+                    })
+                    .then(response3 => {
+                      console.log('ahora mismo ya tiene customized activities')
+                      navigation.push('TutorHome', { nickname: tutor_nickname, password: tutor_password }); //si ha salido bien nos iremos al charged login
+                    })
+                    .catch(error => {
+                      console.error(error);
+                    })
                   }
                 })
                 .catch(error => {
@@ -139,11 +158,11 @@ const TutorAddSeniorScreen = ({navigation, route}) => {
 
       <View style={styles.inputView}>
         <Picker
-          selectedValue={sex}
+          selectedValue={sex || ""}
           style={[styles.TextInput, styles.tutorText, { backgroundColor: "#abe5fa", borderWidth: 0, borderColor: "transparent", borderRadius: 30 }]}
           onValueChange={(itemValue) => setSex(itemValue)}
         >
-          <Picker.Item label="Seleccione el sexo." value={null} />
+          <Picker.Item label="Seleccione el sexo." value="" />
           {sexOptions.map((option, index) => (
             <Picker.Item key={index} label={option} value={option} />
           ))}

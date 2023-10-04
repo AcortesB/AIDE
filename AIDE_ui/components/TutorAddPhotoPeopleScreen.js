@@ -4,13 +4,16 @@ import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import React, { useEffect, useState } from 'react';
 import { styles } from '../styles'; // Import the styles object from styles.js
+import { serverurl } from '../config.js'
 
 const TutorAddPhotoPeopleScreen = ({navigation, route}) => {
-  const { tutor_nickname, tutor_password, selected_senior, uploaded_photo_file } = route.params;
+  const { tutor_nickname, tutor_password, selected_senior, uploaded_photo_file, people_changed } = route.params;
+  // el uploaded_photo_file es el nombre del archivo
+  console.log("uploaded_photo_file NOMBRE EN LA PEOPLESCREEN:",uploaded_photo_file)
   const [people, setPeople] = useState([]);
 
   useEffect(() => {
-    fetch('http://127.0.0.1:8000/' + uploaded_photo_file + '/people') // consigo las personas de la foto
+    fetch(serverurl+'/' + uploaded_photo_file + '/people') // consigo las personas de la foto
       .then(response => response.json())
       .then(photo_people => {
         setPeople(photo_people) //establezco la variable people
@@ -19,13 +22,8 @@ const TutorAddPhotoPeopleScreen = ({navigation, route}) => {
       .catch(error => {
         console.log('Error:', error);
       });
-  }, [people]);
+  }, [,people_changed]);
   
-  //TODO: nos falta una función y hacer que cuando den a "siguiente" se ejecute y se suba de esta manera la foto
-
-  useEffect(() => {
-  }, [people]);
-
   const renderPersonItem = ({ item }) => (
     <View>
       <Text style={[styles.tutorText, styles.textSpacing]}>{item.name} {item.surname}</Text>

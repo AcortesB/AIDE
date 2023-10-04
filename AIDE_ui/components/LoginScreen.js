@@ -3,6 +3,7 @@ import { FlatList, StyleSheet, Text, View, Image, TextInput, Button, TouchableOp
 import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import React, { useEffect, useState } from 'react';
+import { serverurl } from '../config.js'
 
 import { styles } from '../styles'; // Import the styles object from styles.js
 
@@ -14,7 +15,7 @@ const LoginScreen = ({navigation}) => {
   const [isValidCredentials, setIsValidCredentials] = useState(false);
 
   const handleLogin = () => {
-    fetch('http://127.0.0.1:8000/users/'+nickname+'/'+password+'')
+    fetch(serverurl+'/users/'+nickname+'/'+password+'')
       .then(response => response.json())
       .then(userData => {
         console.log(userData) //TODO: como carajos compruebo que no es una respuesta incorrecta?? 

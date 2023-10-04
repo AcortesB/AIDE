@@ -4,6 +4,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import React, { useEffect, useState } from 'react';
 import { styles } from '../styles'; // Import the styles object from styles.js
+import { serverurl } from '../config.js'
 
 const SeniorGamesScreen = ({navigation, route}) => {
   const { senior_nickname, senior_password, senior_name } = route.params;
@@ -12,7 +13,7 @@ const SeniorGamesScreen = ({navigation, route}) => {
 
 useEffect(() => {
   // 1. fetch para sacar todas las customized activities que tengan senior_id = selected_senior.senior_id
-  fetch('http://127.0.0.1:8000/activities/generic_activities')
+  fetch(serverurl+'/activities/generic_activities')
     .then(response => response.json())
     .then(activities => {
       console.log(activities)

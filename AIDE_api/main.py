@@ -13,11 +13,9 @@ from jose import JWTError, jwt
 from datetime import datetime, timedelta
 import models
 from passlib.exc import UnknownHashError
-from sqlalchemy import text
+from sqlalchemy import distinct, func, text
 import os
 from fastapi.staticfiles import StaticFiles
-from fastapi import UploadFile, File
-
 
 # to get a string like this run:
 # openssl rand -hex 32
@@ -126,6 +124,7 @@ class ReportActivity(BaseModel):
     score: int
     senior_id: int
     activity_id: int
+    num_act_answers: int
 
     class Config:
         orm_mode = True
@@ -135,7 +134,8 @@ class Photo(BaseModel):
     id: int
     description: str
     photo_file: str
-    upload: str
+    upload: int
+    senior: int
 
     class Config:
         orm_mode = True
@@ -144,6 +144,9 @@ class Photo(BaseModel):
 class Position(BaseModel):
     id_photo: int
     id_person: int
+    clue: str
+    w: float
+    h: float
     x_inf: float
     y_inf: float
     x_sup: float
@@ -166,6 +169,7 @@ class Person(BaseModel):
     skin_color: str
     eyes_color: str
     familiar_rank: str
+    id_senior: int
 
     class Config:
         orm_mode = True
@@ -489,22 +493,55 @@ def get_photo_id_by_name(person_name:str, person_surname:str ):
 # get the activities a senior played
 @app.get('/senior/{senior_id}/playedactivities',response_model=List[Activity], status_code=200)
 def get_all_played_activities(senior_id:int):
+    
     senior = db.query(models.User_aide).filter(models.User_aide.id==senior_id).first()
     if senior is None:
         raise HTTPException(status_code=400,detail="User not found")
     else:
-        senior_activities=db.query(models.SeniorActivity).filter(models.SeniorActivity.id_senior==senior_id).all()
+        unique_activity_ids= db.query(distinct(models.ReportActivity.activity_id)).filter(models.ReportActivity.senior_id == senior_id).all()
+        unique_activity_ids = [id_[0] for id_ in unique_activity_ids]
         activities = []
 
-        if senior_activities is None or senior_activities == []:
+        if unique_activity_ids is None or unique_activity_ids == []:
             raise HTTPException(status_code=400,detail="There're no played activities yet")
 
-        for senior_activity in senior_activities:
-            activity = db.query(models.Activity).filter(models.Activity.id == senior_activity.id_activity).first()
-            if activity:
-                activities.append(activity)
+        for id_activity in unique_activity_ids:
+            played_activity = db.query(models.Activity).filter(models.Activity.id == id_activity).first()
+            if played_activity:
+                activities.append(played_activity)
 
     return activities
+
+# get una persona de las que sale en las fotos de un senior
+@app.get('/senior/{senior_id}/peple_in_senior_photos/{person_name}/{person_surname}',response_model=Person, status_code=200)
+def get_a_specific_person_in_senior_photos(senior_id:int, person_name:str, person_surname:str):
+    
+    senior = db.query(models.User_aide).filter(models.User_aide.id==senior_id).first()
+    if senior is None:
+        raise HTTPException(status_code=400,detail="User not found")
+    else:
+        tagged_person=db.query(models.Person).filter(models.Person.id_senior==senior_id).filter(models.Person.name==person_name).filter(models.Person.surname==person_surname).first()
+
+        if tagged_person is None:
+            raise HTTPException(status_code=400,detail="That person is not tagged in the photos")
+
+    return tagged_person
+
+
+# get todas las personas que aparecen en fotos de un senior
+@app.get('/senior/{senior_id}/peple_in_senior_photos',response_model=List[Person], status_code=200)
+def get_all_the_people_in_senior_photos(senior_id:int):
+    
+    senior = db.query(models.User_aide).filter(models.User_aide.id==senior_id).first()
+    if senior is None:
+        raise HTTPException(status_code=400,detail="User not found")
+    else:
+        tagged_people=db.query(models.Person).filter(models.Person.id_senior==senior_id).all()
+
+        if tagged_people is None or tagged_people == []:
+            raise HTTPException(status_code=400,detail="There're no people tagged in photos")
+
+    return tagged_people
 
 # get the customizedactivities from a specific senior
 @app.get('/customized_activities_by_senior/{senior_id}',response_model=List[Activity], status_code=200)
@@ -521,6 +558,21 @@ def get_all_senior_customized_activities(senior_id:int):
             if activity:
                 activities.append(activity)
     return activities
+
+# get the photos of a specific senior
+@app.get('/{senior_id}/photos',response_model=List[Photo], status_code=200)
+def get_all_senior_photos(senior_id:int):
+    senior_photos = []
+
+    senior = db.query(models.User_aide).filter(models.User_aide.id==senior_id).first()
+    if senior is None:
+        raise HTTPException(status_code=400,detail="Senior not found")
+    else:
+        senior_photos = db.query(models.Photo).filter(models.Photo.senior==senior_id).all()
+        if senior_photos is None:
+            raise HTTPException(status_code=400,detail="Senior photos not found")
+        
+    return senior_photos
 
 # get the photos of a specific customized activity
 @app.get('/customized_activities/{customized_activity_id}/photos',response_model=List[Photo], status_code=200)
@@ -641,27 +693,46 @@ def create_a_senior(senior: Senior, senior_id:int, tutor_username:str):
 
 # post a photo
 @app.post('/photos',response_model=Photo, status_code=status.HTTP_201_CREATED)
-async def create_a_photo(description: str, photo_file: UploadFile, upload: int):
-    try:
-        query = text('SELECT MAX(id) FROM Photo')
-        db_id = db.execute(query).scalar()
-        
-        # Lee el contenido del archivo
-        photo_content = await photo_file.read()
-        
-        new_photo=models.Photo(
-            id=db_id + 1,
-            description=description,
-            photo_file=photo_content,
-            upload=upload
+def create_a_photo(photo: Photo, response: Response):
+
+    query = text('SELECT MAX(id) FROM Photo')
+    db_id = db.execute(query).scalar()
+    
+    new_photo=models.Photo(
+        id=db_id + 1,
+        description=photo.description,
+        photo_file=photo.photo_file,
+        upload=photo.upload,
+        senior=photo.senior
+    )
+    # codificar la
+    db.add(new_photo)
+    db.commit()
+
+    return Response(content=f"New photo with id {new_photo.id} added")
+
+
+
+# post a senior_activity (asociar a un senior sus actividades customizadas)
+@app.post('/associate_customized_activities/{senior_id}',response_model=SeniorActivity, status_code=status.HTTP_201_CREATED)
+def associate_customized_activity_to_senior(senior_id: int):
+
+    customized_acts=db.query(models.CustomizedAct).all()
+    if customized_acts is None:
+        raise HTTPException(status_code=400,detail="There're no customized activities")
+    
+    for activity in customized_acts:
+        new_senior_activity=models.SeniorActivity(
+            id_senior=senior_id,
+            id_activity=activity.id
         )
-        # codificar la foto en base64
-        db.add(new_photo)
+        # codificar la
+        db.add(new_senior_activity)
         db.commit()
 
-        return Response(content=f"New photo with id {new_photo.id} added")
-    except:
-        db.rollback()
+    return Response(content=f"Customized activities added to senior {new_senior_activity.id_senior}")
+
+
 
 # post a person
 @app.post('/people',response_model=Person, status_code=status.HTTP_201_CREATED)
@@ -681,7 +752,8 @@ def create_a_person(person:Person):
             sex=person.sex,
             skin_color=person.skin_color,
             eyes_color=person.eyes_color,
-            familiar_rank=person.familiar_rank
+            familiar_rank=person.familiar_rank,
+            id_senior=person.id_senior
         )
 
         db.add(new_person)
@@ -695,26 +767,44 @@ def create_a_person(person:Person):
 # post de un report de una actividad
 @app.post('/activities/{id_activity}/report_by_senior_id/{id_senior}',response_model=ReportActivity, status_code=status.HTTP_201_CREATED)
 def create_a_report(report:ReportActivity, id_senior:int, id_activity:int):
-    existing_report = db.query(models.ReportActivity).filter(models.ReportActivity.senior_id == id_senior).filter(models.ReportActivity.activity_id == id_activity).first()
+    
+    #cogemos de todos sus reports el que tenga el number_of_tries más grande
+    max_tries_query = db.query(func.max(models.ReportActivity.number_of_tries)).filter(
+        models.ReportActivity.senior_id == id_senior,
+        models.ReportActivity.activity_id == id_activity
+    )
+    # numero de intentos más grande 
+    max_tries = max_tries_query.scalar()
+    if max_tries is None: 
+            max_tries = 0
     
     db_senior=db.query(models.User_aide).filter(models.User_aide.id==id_senior).first()
-    db_activity=db.query(models.Activity).filter(models.User_aide.id==id_activity).first()
+    db_activity=db.query(models.Activity).filter(models.Activity.id==id_activity).first()
     
     if db_senior is None:
         raise HTTPException(status_code=400,detail="User does not exists")
     
     if db_activity is None:
         raise HTTPException(status_code=400,detail="Activity does not exists")
-
-    if existing_report is not None:
-        raise HTTPException(status_code=400, detail="Report already exists")
     
-    new_report = models.ReportActivity(
+    
+    if max_tries is 0:
+        new_report = models.ReportActivity(
+            time_playing=report.time_playing,
+            number_of_tries=1, #incrmeentamos en uno el número de intentos
+            score=report.score,
+            senior_id=id_senior,
+            activity_id=id_activity,
+            num_act_answers=report.num_act_answers
+        )
+    else:
+        new_report = models.ReportActivity(
         time_playing=report.time_playing,
-        number_of_tries=report.number_of_tries,
+        number_of_tries=max_tries+1, #incrmeentamos en uno el número de intentos
         score=report.score,
         senior_id=id_senior,
-        activity_id=id_activity
+        activity_id=id_activity,
+        num_act_answers=report.num_act_answers
     )
 
     db.add(new_report)
@@ -746,6 +836,9 @@ def create_a_position(id_photo:int,id_person:int,position:Position):
         new_position=models.Position(
             id_photo=position.id_photo,
             id_person=position.id_person,
+            clue=position.clue,
+            w=position.w,
+            h=position.h,
             x_inf=position.x_inf,
             y_inf=position.y_inf,
             x_sup=position.x_sup,
@@ -786,7 +879,7 @@ def update_a_photo(photo_id:int,photo:Photo):
     except:
         db.rollback()
 
-# update de la score, el time_playing y el number_of_tries de un senior_activity
+# update de la score, el time_playing y el number_of_tries de un report
 @app.put('/activities/{activity_id}/report_by_senior_id/{senior_id}',response_model=ReportActivity,status_code=status.HTTP_200_OK)
 def update_a_report(activity_id:int,senior_id: int, report:ReportActivity):    
     try:
@@ -815,6 +908,40 @@ def update_a_report(activity_id:int,senior_id: int, report:ReportActivity):
         # Manejar el error de alguna manera apropiada (registrar, lanzar una excepción personalizada, etc.)
         db.rollback()  # Revertir la transacción en caso de error
 
+# update total_playing_time, hour_start_avg, hour_finish_avg and score_avg
+@app.put('/seniors/{senior_id}/total_playing_time__hour_start_avg__hour_finish_avg__score_avg_update',response_model=Senior,status_code=status.HTTP_200_OK)
+def update_a_senior(senior_id: int):    
+    senior_to_update=db.query(models.Senior).filter(models.Senior.id == senior_id).first()
+    
+    if senior_to_update is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Senior not found")
+
+    #suma de todos sus reports.score
+    score_query = db.query(
+        func.sum(models.ReportActivity.score).label('total_score'),
+        func.count(models.ReportActivity.id).label('num_reports')
+    ).filter(models.ReportActivity.senior_id == senior_id).first()
+    
+    #suma de todos sus reports.time_playing
+    played_time_query = db.query(
+        func.sum(models.ReportActivity.time_playing).label('total_playing_time'),
+        func.count(models.ReportActivity.id).label('num_reports')
+    ).filter(models.ReportActivity.senior_id == senior_id).first()
+
+    average_score = score_query.total_score / score_query.num_reports
+    average_played_time = played_time_query.total_playing_time / played_time_query.num_reports
+
+    if score_query is None or played_time_query is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="There are not reports from this senior yet")
+    else:
+        senior_to_update.total_playing_time = average_played_time
+        senior_to_update.score_avg = average_score
+        
+        db.commit()
+        
+        return Response(content=f"Senior total_playing_time, hour_start_avg, hour_finish_avg and score_avg with id {senior_id} updated")
+#TODO: no registra cuando empieza a jugar (hora) y cuando deja de jugar (hora) ??? seria al iniciar sesión o al cerrarla, pro no he hecho eso
+
 
 # update a position on a specific person in a specific photo
 @app.put('/photos/{photo_id}/people/{person_id}',response_model=Position,status_code=status.HTTP_200_OK)
@@ -828,6 +955,9 @@ def update_person_position_from_a_photo(photo_id:int, person_id:int, position:Po
         else:
             person_position_to_update.id_photo=position.id_photo
             person_position_to_update.id_person=position.id_person
+            person_position_to_update.clue=position.clue
+            person_position_to_update.w=position.w
+            person_position_to_update.h=position.h
             person_position_to_update.x_inf=position.x_inf
             person_position_to_update.y_inf=position.y_inf
             person_position_to_update.x_sup=position.x_sup

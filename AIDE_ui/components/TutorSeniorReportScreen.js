@@ -4,6 +4,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import React, { useEffect, useState } from 'react';
 import { styles } from '../styles'; // Import the styles object from styles.js
+import { serverurl } from '../config.js'
 
 const TutorSeniorReportScreen = ({navigation, route}) => {
   const { tutor_nickname, tutor_password, selected_senior} = route.params;
@@ -12,11 +13,10 @@ const TutorSeniorReportScreen = ({navigation, route}) => {
   
   //fetch para coger las actividades jugadas por la persona
   useEffect(() => {
-      fetch('http://127.0.0.1:8000/senior/'+selected_senior.senior_id+'/playedactivities')
+      fetch(serverurl+'/senior/'+selected_senior.senior_id+'/playedactivities')
         .then(response => response.json())
         .then(activitiesData => {
           setActivities(activitiesData);
-          
         })
         .catch(error => {
           console.log('Error:', error);
@@ -26,7 +26,7 @@ const TutorSeniorReportScreen = ({navigation, route}) => {
 
   //fetch para coger el senior
   useEffect(() => {
-    fetch('http://127.0.0.1:8000/senior/'+selected_senior.senior_id+'')
+    fetch(serverurl+'/senior/'+selected_senior.senior_id+'')
       .then(response => response.json())
       .then(seniorData => {
         setSenior(seniorData);
@@ -62,7 +62,7 @@ const TutorSeniorReportScreen = ({navigation, route}) => {
           <Text style={[styles.tutorTextBold, styles.textSpacing]}>{selected_senior.name}</Text>
           <Text style={[styles.tutorText, styles.textSpacing]}>Time playing: {senior.total_playing_time} h </Text>
           <Text style={[styles.tutorText, styles.textSpacing]}>Start hour: {senior.hour_start_avg} h</Text>
-          <Text style={[styles.tutorText, styles.textSpacing]}>Finish hour: {senior.hour_finish_avg}</Text>
+          <Text style={[styles.tutorText, styles.textSpacing]}>Finish hour: {senior.hour_finish_avg}h</Text>
           <Text style={[styles.tutorText, styles.textSpacing]}>Score average: {senior.score_avg}</Text>
 
           <FlatList

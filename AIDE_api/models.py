@@ -159,16 +159,18 @@ class ReportActivity(Base):
     score = Column("score", Integer, nullable=False)
     senior_id = Column("senior_id", Integer, ForeignKey("senior.id"), nullable=False)
     activity_id = Column("activity_id", Integer, ForeignKey("activity.id"), nullable=False)
+    num_act_answers = Column("num_act_answers", Integer, nullable=False)
     
     senior = relationship("Senior", back_populates="reports")
     activity = relationship("Activity", back_populates="reports")
     
-    def __init__(self, time_playing, number_of_tries, score, senior_id, activity_id):
+    def __init__(self, time_playing, number_of_tries, score, senior_id, activity_id, num_act_answers):
         self.time_playing = time_playing
         self.number_of_tries = number_of_tries
         self.score = score
         self.senior_id = senior_id
         self.activity_id = activity_id
+        self.num_act_answers = num_act_answers
 
     def __repr__(self):
         return f"({self.id}{self.time_playing}{self.number_of_tries}{self.score}{self.senior_id}{self.activity_id})"
@@ -181,18 +183,21 @@ class Photo(Base):
     description = Column("description", Text, nullable=False)
     photo_file = Column("photo_file", String, nullable=False)
     upload = Column("upload", Integer, ForeignKey("tutor.id", ondelete="CASCADE", onupdate="CASCADE"), nullable=False)
+    # senior al que pertenece la foto
+    senior = Column("senior", Integer, ForeignKey("senior.id", ondelete="CASCADE", onupdate="CASCADE"), nullable=False)
     
     #customized_activities = relationship('CustomizedAct', secondary='photo_customized')
     people = relationship('Person', secondary='position')
 
-    def __init__(self, id, description, photo_file, upload ):
+    def __init__(self, id, description, photo_file, upload, senior ):
         self.id = id
         self.description = description
         self.photo_file = photo_file
         self.upload = upload
+        self.senior = senior
 
     def __repr__(self):
-        return f"({self.id}{self.description}{self.upload})"
+        return f"({self.id}{self.description}{self.upload}{self.senior})"
 
 
 class Person(Base):
@@ -205,10 +210,11 @@ class Person(Base):
     skin_color = Column("skin_color", String, nullable=False)
     eyes_color = Column("eyes_color", String, nullable=False)
     familiar_rank = Column("familiar_rank", String, nullable=False)
+    id_senior = Column("id_senior", Integer, ForeignKey("senior.id", ondelete="CASCADE", onupdate="CASCADE"), nullable=False)
     
     photos = relationship('Photo', secondary='position')
 
-    def __init__(self, id, name, surname, sex, skin_color, eyes_color, familiar_rank):
+    def __init__(self, id, name, surname, sex, skin_color, eyes_color, familiar_rank, id_senior):
         self.id = id
         self.name = name
         self.surname = surname
@@ -216,10 +222,11 @@ class Person(Base):
         self.skin_color = skin_color
         self.eyes_color = eyes_color
         self.familiar_rank = familiar_rank
+        self.id_senior = id_senior
 
 
     def __repr__(self):
-        return f"({self.id}{self.name}{self.surname}{self.sex}{self.skin_color}{self.eyes_color}{self.familiar_rank})"
+        return f"({self.id}{self.name}{self.surname}{self.sex}{self.skin_color}{self.eyes_color}{self.familiar_rank}{self.id_senior})"
 
 
 
@@ -227,7 +234,10 @@ class Position(Base):
     __tablename__ = "position"
 
     id_photo = Column("id_photo", Integer, ForeignKey("photo.id"), primary_key=True, nullable=False)
-    id_person = Column("id_person", Integer, ForeignKey("person.id"), primary_key=True, nullable=False) 
+    id_person = Column("id_person", Integer, ForeignKey("person.id"), primary_key=True, nullable=False)
+    clue = Column("clue", Text, nullable=False)
+    w = Column("w", Float, nullable=False)
+    h = Column("h", Float, nullable=False)
     x_inf = Column("x_inf", Float, nullable=False)
     y_inf = Column("y_inf", Float, nullable=False)
     x_sup = Column("x_sup", Float, nullable=False)
@@ -238,9 +248,12 @@ class Position(Base):
     glasses = Column("glasses", Boolean, nullable=False)
     clothes_color = Column("clothes_color", String, nullable=False)
 
-    def __init__(self, id_photo, id_person, x_inf, y_inf, x_sup, y_sup, hair_color, voice_record, sunglasses, glasses, clothes_color):
+    def __init__(self, id_photo, id_person, clue, w, h, x_inf, y_inf, x_sup, y_sup, hair_color, voice_record, sunglasses, glasses, clothes_color):
         self.id_photo = id_photo
         self.id_person = id_person
+        self.clue = clue
+        self.w = w
+        self.h = h
         self.x_inf = x_inf
         self.y_inf = y_inf
         self.x_sup = x_sup
@@ -252,7 +265,7 @@ class Position(Base):
         self.clothes_color = clothes_color
 
     def __repr__(self):
-        return f"({self.id_photo}{self.id_person}{self.x_inf}{self.y_inf}{self.x_sup}{self.y_sup}{self.hair_color}{self.voice_record}{self.sunglasses}{self.glasses}{self.clothes_color})"
+        return f"({self.id_photo}{self.id_person}{self.clue}{self.w}{self.h}{self.x_inf}{self.y_inf}{self.x_sup}{self.y_sup}{self.hair_color}{self.voice_record}{self.sunglasses}{self.glasses}{self.clothes_color})"
     
 
 class PhotoCustomized(Base):

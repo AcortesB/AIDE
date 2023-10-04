@@ -4,10 +4,11 @@ import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import React, { useEffect, useState } from 'react';
 import { styles } from '../styles'; // Import the styles object from styles.js
+import { serverurl } from '../config.js'
 
 const TutorAddPhotoPositionScreen = ({navigation, route}) => {
   const { tutor_nickname, tutor_password, selected_senior, uploaded_photo_file, added_person_name, added_person_surname } = route.params;
-  
+  console.log("uploaded_photo_file NOMBRE EN LA POSITIONSCREEN:",uploaded_photo_file)
   //position in the photo
   const [photo_id, setPhotoId] = useState(null);
   const [person_id, setPersonId] = useState(null);
@@ -16,6 +17,7 @@ const TutorAddPhotoPositionScreen = ({navigation, route}) => {
   const [clothes, setClothes] = useState(null);
   const [sunglasses, setSunglasses] = useState(null);
   const [glasses, setGlasses] = useState(null);
+  const [clue, setClue] = useState(null);
   //falta el audio
 
   const hairOptions = ["Moreno", "Rubio", "Pelirrojo", "Castaño", "Negro", "Blanco", "Otros"];
@@ -26,26 +28,27 @@ const TutorAddPhotoPositionScreen = ({navigation, route}) => {
   const yinf = 0
   const xsup = 1
   const ysup = 2
+
   
   const handlePosition = () => {
     if (hair && clothes && sunglasses && glasses)
     // && xinf && yinf && xsup && ysup
       // get del id de la foto
-      fetch('http://127.0.0.1:8000/photo_id_by_name/'+uploaded_photo_file)
+      fetch(serverurl+'/photo_id_by_name/'+uploaded_photo_file)
         .then(response => response.json())
         .then(photo => {
           setPhotoId(photo.id)
           console.log(photo.id)
           
           // get del id de la persona por el name y el surname
-          fetch('http://127.0.0.1:8000/person_by_name_and_surname/'+added_person_name+'/'+added_person_surname)
+          fetch(serverurl+'/person_by_name_and_surname/'+added_person_name+'/'+added_person_surname)
           .then(response1 => response1.json())
           .then(person => {
             setPersonId(person.id)
             console.log(person.id)
 
               // post de la position
-              fetch('http://127.0.0.1:8000/photos/'+photo.id+'/people/'+person.id+'/position', {
+              fetch(serverurl+'/photos/'+photo.id+'/people/'+person.id+'/position', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -53,6 +56,9 @@ const TutorAddPhotoPositionScreen = ({navigation, route}) => {
               body: JSON.stringify({
                 id_photo: photo.id,
                 id_person: person.id,
+                clue: clue,
+                w: 363,
+                h: 363,
                 x_inf:xinf,
                 y_inf:yinf,
                 x_sup:xsup,
@@ -67,7 +73,7 @@ const TutorAddPhotoPositionScreen = ({navigation, route}) => {
             .then(response2 => {
               if (response2.ok){
                 console.log("Ya se ha posteado la position")
-                navigation.navigate('TutorAddPhotoPeople', { tutor_nickname:tutor_nickname, tutor_password:tutor_password, selected_senior:selected_senior, uploaded_photo_file: "aaa" });
+                navigation.navigate('TutorAddPhotoPeople', { tutor_nickname:tutor_nickname, tutor_password:tutor_password, selected_senior:selected_senior, uploaded_photo_file: uploaded_photo_file, people_changed: true });
               }
             })
             .catch(error => {
@@ -97,6 +103,15 @@ const TutorAddPhotoPositionScreen = ({navigation, route}) => {
   return(
     <View style={styles.container}>
       <StatusBar style="auto" />
+      
+      <View style={styles.inputView}>
+        <TextInput
+          style={[styles.TextInput, styles.tutorText]}
+          placeholder="Pista sobre la ubicación de la persona en la foto. (Ej. 'Mira al lado derecho'.)"
+          placeholderTextColor="#003f5c"
+          onChangeText={(clue) => setClue(clue)} 
+        />
+      </View>
 
       <View style={styles.inputView}>
         <Picker
@@ -150,7 +165,7 @@ const TutorAddPhotoPositionScreen = ({navigation, route}) => {
       
       <Text style={[styles.tutorText, styles.textSpacing]}>Arrastra con los dedos el cuadrado de color verde a la posicion de la persona y agrandalo para marcar el área que ocupa.</Text>
       <Image
-        source={{ uri: `http://localhost:8000/uploads/Recuadro.jpeg` }}
+        source={{ uri: `http://localhost:8000/uploads/tatin_y_yo_recuadro.jpg` }}
         style={styles.image}
       />
 

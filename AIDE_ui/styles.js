@@ -49,6 +49,26 @@ export const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: "15%",
+    },
+  
+    activityWhoContainer: {
+    flex: 1,
+    position: 'absolute',
+    backgroundColor: "#72d9fe",
+    top: "20%",
+    left: "12.5%",
+    bottom: 0,
+    right: 0,
+    flexDirection: 'row',
+    //justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: "15%",
+    justifyContent: 'center',
+  },
+
+  activityContainerImage: {
+    height: '100%', // Ajustar la altura al 100% del contenedor
+    aspectRatio: 1, // Mantener el aspect ratio original de la imagen
   },
 
   speechContainer: {

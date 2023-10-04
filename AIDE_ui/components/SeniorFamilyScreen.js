@@ -4,26 +4,28 @@ import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import React, { useEffect, useState } from 'react';
 import { styles } from '../styles'; // Import the styles object from styles.js
+import { serverurl } from '../config.js'
 
 const SeniorFamilyScreen = ({navigation, route}) => {
   const { senior_nickname, senior_password, senior_name } = route.params;
   const [senior_id, setSeniorId] = useState(null); 
   const [customized_activities, setCustomizedActs] = useState([]); 
   const customizedActs = []
+  const [hasPhotos, setHasPhotos] = useState(false); 
 
   useEffect(() => {
-    fetch('http://127.0.0.1:8000/users/' + senior_nickname + '/' + senior_password)
+    fetch(serverurl+'/users/' + senior_nickname + '/' + senior_password)
       .then(response => response.json())
       .then(senior => {
         setSeniorId(senior.id);
         
-        fetch('http://127.0.0.1:8000/customized_activities_by_senior/' + senior.id)
+        fetch(serverurl+'/customized_activities_by_senior/' + senior.id)
           .then(response => response.json())
           .then(activities => {
             console.log(activities)
             // 2. por cada customized activity coges el id y miras en actividades y haces una variable con ellas
             const fetchPromises = activities.map(activity => {
-              return fetch('http://127.0.0.1:8000/activities/'+ activity.id)
+              return fetch(serverurl+'/activities/'+ activity.id)
                 .then(response => response.json())
                 .then(activity => {
                   //metemos la actividad en un array
@@ -55,8 +57,37 @@ const SeniorFamilyScreen = ({navigation, route}) => {
     console.log('customized_activities:', customized_activities);
   }, [customized_activities]);
 
+// -------------------------------------------------------------------------------------
+  useEffect(() => {
+    fetch(serverurl+'/users/'+ senior_nickname)
+    .then(response => response.json())
+    .then(senior_info => {
+      // conseguimos las fotos que pertenezcan al senior
+      fetch(serverurl+'/'+senior_info.id+'/photos')
+      .then(response => response.json())
+      .then(photos => {
+        if(photos.length != 0){
+          setHasPhotos(true);
+          console.log("TIENE FOTOS EL SENIOR")
+        }else{
+          setHasPhotos(false);
+          console.log("NOOOOOOOOOOO FOTOS")
+        }
+      })
+      .catch(error => {
+        console.log('Error:', error);
+        return [];
+      });
+    })
+    .catch(error => {
+      console.log('Error:', error);
+      return [];
+    });
+  }, [customized_activities]);
+// -------------------------------------------------------------------------------------
+
   const handleActivityPress = (activity) => {
-    navigation.navigate('SeniorStartActivity', { senior_nickname: senior_nickname, senior_password: senior_password, senior_name: senior_name, activity: activity});
+    navigation.navigate('SeniorStartActivity', { senior_nickname: senior_nickname, senior_password: senior_password, senior_name: senior_name, activity: activity, hasPhotos: hasPhotos});
   };
   
   const renderPhotoActivityItem = ({ item }) => (

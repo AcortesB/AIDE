@@ -4,28 +4,23 @@ import {NavigationContainer, useFocusEffect} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import React, { useEffect, useState } from 'react';
 import { styles } from '../styles'; // Import the styles object from styles.js
+import { serverurl } from '../config.js'
 
 
 const TutorHomeScreen = ({navigation, route}) => {
   
     const { nickname, password, readSeniors } = route.params; //al principio readSenior estará undefined, solo será defined cuando lleguen de añadir u senior
-    const [seniors, setSeniors] = useState([]);
     const [names, setNames] = useState([]);
-    const [user, setUser] = useState("");
     const [selectedSenior, setSelectedSenior] = useState({ name: null, senior_id: null });
-    const [completeSeniors, setCompleteSeniors] = useState([]);
-    //let readSeniorsFirstTime = true;
-    //let namesList = [];
-    
+
     useEffect(() => {
-      fetch('http://127.0.0.1:8000/tutors/' + nickname + '/seniors') // consigo los seniors del tutor en cuestión
+      fetch(serverurl+'/tutors/' + nickname + '/seniors') // consigo los seniors del tutor en cuestión
         .then(response => response.json())
         .then(seniors => {
           console.log(seniors)
-          //setSeniors(seniors) //son setSenior establezco seniors (que al ginal es como un array con todos los seniors del tutor)
           const namesPromises = seniors.map(senior => {
             const senior_id = senior.id
-            return fetch('http://127.0.0.1:8000/seniors/' + senior.id)
+            return fetch(serverurl+'/seniors/' + senior.id)
               .then(response => response.json())
               .then(name => ({ name, senior_id })) // Crear el par con name y senior_id
               .catch(error => {
@@ -35,10 +30,8 @@ const TutorHomeScreen = ({navigation, route}) => {
           });
   
           Promise.all(namesPromises)
-            .then(names => {
-              setNames(names); //establecemos names con lo que nos devuelvan las promises de haber mapeado
-              // namesList = names;
-              // console.log(namesList);
+            .then(seniorNames => {
+              setNames(seniorNames); //establecemos names con lo que nos devuelvan las promises de haber mapeado
             })
             .catch(error => {
               console.log('Error:', error);
@@ -64,13 +57,12 @@ const TutorHomeScreen = ({navigation, route}) => {
         
         <StatusBar style="auto" />
         
-        
           {names.length > 0 ? (
           <>
             <Text style={styles.tutorText}>Seleccione un Senior asociado:</Text>
               {names.map((senior) => (
                 <TouchableOpacity
-                  key={name}
+                  key={senior.name}
                   onPress={() => handleSeniorSelection(senior.name, senior.senior_id)}
                   style={[
                     styles.loginBtnTransparent,

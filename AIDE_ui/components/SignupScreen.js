@@ -4,6 +4,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import React, { useEffect, useState } from 'react';
 import { styles } from '../styles'; // Import the styles object from styles.js
+import { serverurl } from '../config.js'
 
 const SignupScreen = ({ navigation, route }) => {
     const [nickname, setNickname] = useState("");
@@ -13,7 +14,7 @@ const SignupScreen = ({ navigation, route }) => {
   
     const handleSignup = () => {
   
-      fetch('http://127.0.0.1:8000/users', {
+      fetch(serverurl+'/users', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -32,12 +33,12 @@ const SignupScreen = ({ navigation, route }) => {
           //console.log('Se ha actualizado la tabla de users? ',response.ok)
           if (response.ok) {
             
-            fetch('http://127.0.0.1:8000/users/'+nickname+'')
+            fetch(serverurl+'/users/'+nickname+'')
                 .then(response1 => response1.json())
                 .then(tutorData => {
                   console.log(tutorData.id)
                   
-                  fetch('http://127.0.0.1:8000/users/tutors/'+tutorData.id+'', { //hacemos post del usuario en Tutor
+                  fetch(serverurl+'/users/tutors/'+tutorData.id+'', { //hacemos post del usuario en Tutor
                     method: 'POST',
                     headers: {
                       'Content-Type': 'application/json',

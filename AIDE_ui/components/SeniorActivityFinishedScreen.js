@@ -4,57 +4,65 @@ import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import React, { useEffect, useState } from 'react';
 import { styles } from '../styles'; // Import the styles object from styles.js
+import { serverurl } from '../config.js'
 
 const SeniorActivityFinishedScreen = ({navigation, route}) => {
 
-  const {senior_nickname, senior_password, senior_name, activity, senior, score, playing_time } = route.params;
+  const {senior_nickname, senior_password, senior_name, activity, score, activity_score, senior, playing_time } = route.params;
+  //ahora cuando hagas el report tendrás que meterle un num_answers: activity_score
+  fetch(serverurl+'/activities/' + activity.id + '/report_by_senior_id/' + senior.id, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      id: 100,
+      senior_id: senior.id,
+      activity_id: activity.id,
+      score: activity_score,
+      time_playing: playing_time,
+      number_of_tries: 100,
+      num_act_answers: score
+      })
+    })
+    .catch(error => {
+      console.log('Error:', error);
+    });
 
-  useEffect(() => {
-    fetch('http://127.0.0.1:8000/activities/'+activity.id+'/report_by_senior_id/'+senior.id)
-      .then(response => response.json())
-      .then(report => {
-        console.log("activity.id: ", activity.id);
-        console.log("senior.id: ", senior.id);
-
-        if (report.detail === undefined){ //si el report.detail es undefined significa que ha cogido bien el report
-          //update de la score, el time_playing y el number_of_tries de un senior_activity
-          fetch('http://127.0.0.1:8000/activities/' + activity.id + '/report_by_senior_id/' + senior.id, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            id: 100,
-            senior_id: senior.id,
-            activity_id: activity.id,
-            score: score,
-            time_playing: playing_time,
-            number_of_tries: 100,
-            })
+    fetch(serverurl+'/senior/'+ senior.id)
+    .then(response => response.json())
+    .then(senior_info => {
+      
+      fetch(serverurl+'/seniors/'+senior.id+'/total_playing_time__hour_start_avg__hour_finish_avg__score_avg_update', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          id: senior_info.id,
+          total_playing_time: playing_time,
+          hour_start_avg: senior_info.hour_start_avg,
+          hour_finish_avg: senior_info.hour_finish_avg,
+          score_avg: score,
+          tutor_id: senior_info.tutor_id,
+          sex: senior_info.sex,
+          birth_year: senior_info.birth_year,
+          birth_place: senior_info.birth_place,
+          descendants_num: senior_info.descendants_num,
+          sons_num: senior_info.sons_num,
+          daughters_num: senior_info.daughters_num,
+          siblings_num: senior_info.siblings_num,
+          brothers_num: senior_info.brothers_num,
+          sisters_num: senior_info.sisters_num,
+          partner_name: senior_info.partner_name,
+          father_name: senior_info.father_name,
+          mother_name: senior_info.mother_name,
           })
-        }else{ //si es la primera vez que el senior juega hacemos el post de este report
-          fetch('http://127.0.0.1:8000/activities/' + activity.id + '/report_by_senior_id/' + senior.id, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              id: 100,
-              time_playing: playing_time,
-              number_of_tries: 1, //porque es la primera vez que se juega
-              score: score,
-              senior_id: senior.id,
-              activity_id: activity.id
-            })
-          })
-        }
       })
       .catch(error => {
         console.log('Error:', error);
       });
-  }, []);
-
-
+    })
   
   //coger los elementos de la route para poder pasarlos
   useEffect(() => {

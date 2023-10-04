@@ -4,6 +4,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import React, { useEffect, useState } from 'react';
 import { styles } from '../styles'; // Import the styles object from styles.js
+import { serverurl } from '../config.js'
 
 const TutorSeniorActivityInfoScreen = ({navigation, route}) => {
   const { tutor_nickname, tutor_password, selected_senior, selected_activity} = route.params;
@@ -13,7 +14,7 @@ const TutorSeniorActivityInfoScreen = ({navigation, route}) => {
   
   //fetch para coger la info de la activity deseada
   useEffect(() => {
-    fetch('http://127.0.0.1:8000/activities/'+selected_activity.id+'')
+    fetch(serverurl+'/activities/'+selected_activity.id+'')
       .then(response => response.json())
       .then(activityData => {
         setActivity(activityData);

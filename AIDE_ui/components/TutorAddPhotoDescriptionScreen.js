@@ -7,6 +7,7 @@ import { styles } from '../styles'; // Import the styles object from styles.js
 
 const TutorAddPhotoDescriptionScreen = ({navigation, route}) => {
   const { tutor_nickname, tutor_password, selected_senior } = route.params;
+  console.log("selected_senior:",selected_senior)
   const [description, setDescription] = useState("");
   const [imageUri, setImageUri] = useState(null);
   const [tutor_id, setTutorId] = useState(null);
@@ -20,19 +21,23 @@ const TutorAddPhotoDescriptionScreen = ({navigation, route}) => {
         .then(tutorData => {
           setTutorId(tutorData.id)
 
-          const formData = new FormData();
-          formData.append('description', description);
-          formData.append('photo_file', selectedFile);
-          formData.append('upload', tutorData.id);
-
           fetch('http://127.0.0.1:8000/photos', { //posteamos la photo
             method: 'POST',
-            body: formData, // Usa el FormData para enviar el archivo
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              id: 100,
+              description: description,
+              photo_file: selectedFile.name, //enviamos el nombre del archivo
+              upload: tutorData.id,
+              senior: selected_senior.senior_id
+            }),
           })
           .then(response => {
             if (response.ok){
               console.log("Ya se ha posteado la foto")
-              navigation.navigate('TutorAddPhotoPeople', { tutor_nickname:tutor_nickname, tutor_password:tutor_password, selected_senior:selected_senior, uploaded_photo_file: selectedFile });
+              navigation.navigate('TutorAddPhotoPeople', { tutor_nickname:tutor_nickname, tutor_password:tutor_password, selected_senior:selected_senior, uploaded_photo_file: selectedFile.name });
             }
           })
           .catch(error => {
