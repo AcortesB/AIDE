@@ -7,7 +7,7 @@ import { styles } from '../styles'; // Import the styles object from styles.js
 import { serverurl } from '../config.js'
 
 const TutorAddPhotoPersonScreen = ({navigation, route}) => {
-  const { tutor_nickname, tutor_password, selected_senior, uploaded_photo_file } = route.params;
+  const { tutor_nickname, tutor_password, selected_senior, uploaded_photo_file, people_changed } = route.params;
   //console.log("uploaded_photo_file NOMBRE EN PERSONSCREEN:",uploaded_photo_file)
   //console.log(selected_senior.id)
   //person fields
@@ -122,7 +122,7 @@ const TutorAddPhotoPersonScreen = ({navigation, route}) => {
         .then(response => {
           if (response.ok){
             console.log("Se ha añadido la persona nueva")
-            navigation.navigate('TutorAddPhotoPosition', { tutor_nickname:tutor_nickname, tutor_password:tutor_password, selected_senior:selected_senior, uploaded_photo_file: uploaded_photo_file, added_person_name: name, added_person_surname: surname});
+            navigation.navigate('TutorAddPhotoPosition', { tutor_nickname:tutor_nickname, tutor_password:tutor_password, selected_senior:selected_senior, uploaded_photo_file: uploaded_photo_file, added_person_name: name, added_person_surname: surname, people_changed: people_changed});
           }
         })
         .catch(error => {
@@ -131,23 +131,18 @@ const TutorAddPhotoPersonScreen = ({navigation, route}) => {
       }
     }
   };
-    
-    useEffect(() => {
-    }, [name]);
-
-    useEffect(() => {
-    }, [surname]);
 
   return(
     <View style={styles.container}>
       <StatusBar style="auto" />
-      <Text>Si lo desea seleccione a una persona que ya aparezca en otras fotos.</Text>
+      <Text>Si sale una persona en este foto que ya haya etiquetado en otra, seleccionela, por favor.</Text>
+      
       <View style={styles.inputView}>
         <Picker
           selectedValue={person}
           style={[styles.TextInput, styles.tutorText, { backgroundColor: "#abe5fa", borderWidth: 0, borderColor: "transparent", borderRadius: 30 }]}
           onValueChange={(itemValue) => setPerson(itemValue)}
-          enabled={!person} // Inhabilita el Picker si person existe
+          enabled={!name} // Inhabilita el Picker si person existe
         >
           <Picker.Item label="Seleccione a una persona" value={null} />
           {peopleOptions.map((option, index) => (
@@ -155,31 +150,30 @@ const TutorAddPhotoPersonScreen = ({navigation, route}) => {
           ))}
         </Picker>
       </View>
-
+      
+      <Text>Si es una persona que etiqueta por primera vez, rellene los campos de abajo para añadirla.</Text>
+      
+      <Text style={[styles.textContainer2, styles.tutorText]}>Ingrese el nombre de la persona.</Text>
       <View style={styles.inputView}>
         <TextInput
           style={[styles.TextInput, styles.tutorText]}
-          placeholder="Nombre."
+          placeholder="Ejemplo: Amparo"
           placeholderTextColor="#003f5c"
           onChangeText={(name) => setName(name)} 
-          value={person ? name : ""}
-          editable={!person && !name && !surname} // Inhabilita el TextInput si person, name y surname existen
-          value={person ? name : ''}
         />
       </View>
-
+  
+      <Text style={[styles.textContainer2, styles.tutorText]}>Ingrese el apellido de la persona.</Text>
       <View style={styles.inputView}>
         <TextInput
           style={[styles.TextInput, styles.tutorText]}
-          placeholder="Apellido."
+          placeholder="Ejemplo: García"
           placeholderTextColor="#003f5c"
           onChangeText={(surname) => setSurname(surname)}
-          value={person ? name : ""}
-          editable={!person && !name && !surname} // Inhabilita el TextInput si person, name y surname existen
-          value={person ? surname : ''}
         />        
       </View>
 
+      <Text style={[styles.textContainer2, styles.tutorText]}>Seleccione el sexo de la persona.</Text>
       <View style={styles.inputView}>
         <Picker
           selectedValue={sex}
@@ -187,13 +181,14 @@ const TutorAddPhotoPersonScreen = ({navigation, route}) => {
           onValueChange={(itemValue) => setSex(itemValue)}
           enabled={!person} // Inhabilita el Picker si person existe
         >
-          <Picker.Item label="Seleccione el sexo." value={null} />
+          <Picker.Item label="Sexo" value={null} />
           {sexOptions.map((option, index) => (
             <Picker.Item key={index} label={option} value={option} />
           ))}
         </Picker>
       </View>
 
+      <Text style={[styles.textContainer2, styles.tutorText]}>Seleccione el color de piel de la persona.</Text>
       <View style={styles.inputView}>
         <Picker
           selectedValue={skin}
@@ -201,13 +196,14 @@ const TutorAddPhotoPersonScreen = ({navigation, route}) => {
           onValueChange={(itemValue) => setSkin(itemValue)}
           enabled={!person} // Inhabilita el Picker si person existe
         >
-          <Picker.Item label="Seleccione el color de piel." value={null} />
+          <Picker.Item label="Color de piel" value={null} />
           {skinOptions.map((option, index) => (
             <Picker.Item key={index} label={option} value={option} />
           ))}
         </Picker>
       </View>
 
+      <Text style={[styles.textContainer2, styles.tutorText]}>Seleccione el color de ojos de la persona.</Text>
       <View style={styles.inputView}>
         <Picker
           selectedValue={eyes}
@@ -215,13 +211,14 @@ const TutorAddPhotoPersonScreen = ({navigation, route}) => {
           onValueChange={(itemValue) => setEyes(itemValue)}
           enabled={!person} // Inhabilita el Picker si person existe
         >
-          <Picker.Item label="Seleccione el color de ojos." value={null} />
+          <Picker.Item label="Color de ojos." value={null} />
           {eyesOptions.map((option, index) => (
             <Picker.Item key={index} label={option} value={option} />
           ))}
         </Picker>
       </View>
-
+ 
+      <Text style={[styles.textContainer2, styles.tutorText]}>Seleccione el rango familiar de la persona.</Text>
       <View style={styles.inputView}>
         <Picker
           selectedValue={rank}
@@ -229,7 +226,7 @@ const TutorAddPhotoPersonScreen = ({navigation, route}) => {
           onValueChange={(itemValue) => setRank(itemValue)}
           enabled={!person} // Inhabilita el Picker si person existe
         >
-          <Picker.Item label="Seleccione el rango familiar." value={null} />
+          <Picker.Item label="Rango familiar" value={null} />
           {rankOptions.map((option, index) => (
             <Picker.Item key={index} label={option} value={option} />
           ))}

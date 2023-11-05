@@ -61,8 +61,6 @@ const TutorSeniorReportScreen = ({navigation, route}) => {
       <View style={styles.recuadroTransparente}>
           <Text style={[styles.tutorTextBold, styles.textSpacing]}>{selected_senior.name}</Text>
           <Text style={[styles.tutorText, styles.textSpacing]}>Time playing: {senior.total_playing_time} h </Text>
-          <Text style={[styles.tutorText, styles.textSpacing]}>Start hour: {senior.hour_start_avg} h</Text>
-          <Text style={[styles.tutorText, styles.textSpacing]}>Finish hour: {senior.hour_finish_avg}h</Text>
           <Text style={[styles.tutorText, styles.textSpacing]}>Score average: {senior.score_avg}</Text>
 
           <FlatList

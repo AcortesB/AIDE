@@ -45,6 +45,10 @@ const LoginScreen = ({navigation}) => {
       });
   }
 
+  const handlePassRecovery = () => {
+    navigation.navigate('PasswordRecovery');
+  }
+  
   return (
     <View style={styles.container}> 
       
@@ -72,7 +76,7 @@ const LoginScreen = ({navigation}) => {
       </View>
       
       <TouchableOpacity>
-        <Text style={styles.forgot_button}>Olvidaste la contraseña?</Text>
+        <Text onPress = {handlePassRecovery} style={styles.forgot_button}>Olvidaste la contraseña?</Text>
       </TouchableOpacity>
 
       <TouchableOpacity onPress={() => navigation.navigate('Signup', { nickname: nickname , password: password})}>

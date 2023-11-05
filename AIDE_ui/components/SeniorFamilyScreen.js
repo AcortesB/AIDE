@@ -98,7 +98,7 @@ const SeniorFamilyScreen = ({navigation, route}) => {
         style={styles.galleryImage}
       />
       </View>
-      <Text style={styles.galleryImageText}>{item.name}</Text>
+      <Text style={[styles.scrollViewActivityText, styles.speechText]}>{item.name}</Text>
     </TouchableOpacity>
   );
 
@@ -111,10 +111,10 @@ const SeniorFamilyScreen = ({navigation, route}) => {
       <View style={styles.speechContainer}>
         <Text style={styles.speechText}>Escoge un juego</Text>
         
-        <Image
+        {/* <Image
           source={require("../assets/sin-sonido2.png")}
           style={styles.muteIcon}
-        />
+        /> */}
       </View>
 
       <View style={styles.sidebarContainer}>
@@ -127,11 +127,11 @@ const SeniorFamilyScreen = ({navigation, route}) => {
           <TouchableOpacity style={styles.sidebarIcon2selected} onPress={() => navigation.navigate('SeniorFamily', { senior_nickname: senior_nickname, senior_password: senior_password , senior_name: senior_name })}>
             <Image style={styles.sidebarIconImage} source={require("../assets/familia2.png")}></Image>
           </TouchableOpacity>
-
+          
           <TouchableOpacity style={styles.sidebarIcon3} onPress={() => navigation.navigate('SeniorHome', { senior_nickname: senior_nickname, senior_password: senior_password , senior_name: senior_name })}>
             <Image style={styles.sidebarIconImage} source={require("../assets/respuesta.png")}></Image>
           </TouchableOpacity>
-          
+
           <TouchableOpacity style={styles.sidebarIcon4} onPress={() => navigation.navigate('aunNoHiceNadaParaCerrarLaAppEnElMovil', { senior_nickname: senior_nickname, senior_password: senior_password , senior_name: senior_name })}>
             <Image style={styles.sidebarIconImage} source={require("../assets/boton-de-cierre.png")}></Image>
           </TouchableOpacity>

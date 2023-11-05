@@ -5,10 +5,16 @@ import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import React, { useEffect, useState } from 'react';
 import { styles } from '../styles'; // Import the styles object from styles.js
 import { serverurl } from '../config.js'
+import * as Animatable from 'react-native-animatable';
 
 const SeniorActivityFinishedScreen = ({navigation, route}) => {
 
   const {senior_nickname, senior_password, senior_name, activity, score, activity_score, senior, playing_time } = route.params;
+  const [randomImageIndex, setRandomImageIndex] = useState(0);
+  useEffect(() => {
+    const randomIndex = Math.floor(Math.random() * images.length);
+    setRandomImageIndex(randomIndex);
+  }, [images]);
   //ahora cuando hagas el report tendrás que meterle un num_answers: activity_score
   fetch(serverurl+'/activities/' + activity.id + '/report_by_senior_id/' + senior.id, {
     method: 'POST',
@@ -71,12 +77,15 @@ const SeniorActivityFinishedScreen = ({navigation, route}) => {
       navigation.navigate('SeniorHome', { senior_nickname:senior_nickname, senior_password:senior_password, senior_name:senior_name});
     };
 
-    // Programa la redirección después de 3 segundos
     const timeoutId = setTimeout(redirectToSeniorHome, 3000);
 
-    // Limpia el temporizador cuando el componente se desmonta para evitar problemas de memoria
     return () => clearTimeout(timeoutId);
   }, [navigation]);
+
+  const images = [
+    require("../assets/manos.gif"),
+    require("../assets/petardos.gif"),
+  ];
   
   return (
     <View style={styles.container}>
@@ -84,12 +93,15 @@ const SeniorActivityFinishedScreen = ({navigation, route}) => {
       
       
       <View style={styles.speechContainer}>
-        <Text style={styles.speechText}>Bien hecho!</Text>
+      <Animatable.Text animation="bounceIn" style={styles.speechText}>
+        Bien hecho!
+      </Animatable.Text>
         
+{/*         
         <Image
           source={require("../assets/sin-sonido2.png")}
           style={styles.muteIcon}
-        />
+        /> */}
       </View>
 
       <View style={styles.sidebarContainer}>
@@ -114,11 +126,12 @@ const SeniorActivityFinishedScreen = ({navigation, route}) => {
         </View>
       </View>
       
-      <View style={styles.activityContainer}>
-        <Text style={styles.timeText}>Tiempo total: {playing_time}</Text>
+      <View style={styles.activityWhoContainer}>
+        <Image
+          source={images[randomImageIndex]}
+          style={styles.activityContainerImage}
+        />
       </View>
-
-      
     </View>
   );
 };

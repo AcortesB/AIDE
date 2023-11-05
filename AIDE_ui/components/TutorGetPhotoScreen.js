@@ -1,53 +1,57 @@
 import { StatusBar } from "expo-status-bar";
 import { FlatList, StyleSheet, Text, View, Image, TextInput, Button, TouchableOpacity, ScrollView, Picker } from "react-native";
-import {NavigationContainer} from '@react-navigation/native';
+import {NavigationContainer, useFocusEffect} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import React, { useEffect, useState } from 'react';
 import { styles } from '../styles'; // Import the styles object from styles.js
 import { serverurl } from '../config.js'
 
 const TutorGetPhotoScreen = ({navigation, route}) => {
-  const { tutor_nickname, tutor_password, selected_senior, selected_photo } = route.params;
-  
+  const { tutor_nickname, tutor_password, selected_senior, selected_photo, description_changed } = route.params;
+  console.log("description_changed en getPhotoScreen:", description_changed)
   const [photo, setPhotoInfo] = useState([]); 
   const [people, setPhotoPeople] = useState([]); 
   const [description, setPhotoDescription] = useState([]);
 
 
-  useEffect(() => {
-    // cogemos la foto
-    fetch(serverurl+'/photos/' + selected_photo.id + '') 
-      .then(response => response.json())
-      .then(photo_info => {
-        console.log("Got the photo info")
-        setPhotoDescription(photo_info.description)
-        setPhotoInfo(photo_info)
-        
-        // cogemos la lista de personas que sale en la foto
-        const fetchPromises = fetch(serverurl+'/photos/' + photo_info.id + '/people')
-          .then(response => response.json())
-          .then(people_list => {
-            console.log("Got the people list")
-            //setPhotoPeople(people_list)
-            console.log(people_list)
-            return people_list;
-          })
-          .catch(error => {
-            console.log('Error:', error);
-            return [];
-          });
+  useFocusEffect(
+    React.useCallback(() => {
+      console.log("AQUIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII");
+      // cogemos la foto
+      fetch(serverurl+'/photos/' + selected_photo.id + '') 
+        .then(response => response.json())
+        .then(photo_info => {
+          console.log("Got the photo info")
+          setPhotoDescription(photo_info.description)
+          setPhotoInfo(photo_info)
+          
+          // cogemos la lista de personas que sale en la foto
+          const fetchPromises = fetch(serverurl+'/photos/' + photo_info.id + '/people')
+            .then(response => response.json())
+            .then(people_list => {
+              console.log("Got the people list")
+              //setPhotoPeople(people_list)
+              console.log(people_list)
+              return people_list;
+            })
+            .catch(error => {
+              console.log('Error:', error);
+              return [];
+            });
 
-        Promise.all([fetchPromises])
-          .then(peopleArray => {
-            setPhotoPeople(peopleArray);
-            //console.log(peopleArray)
-          });
-      })
-      .catch(error => {
-        console.log('Error:', error);
-      });
-  }, []);
+          Promise.all([fetchPromises])
+            .then(peopleArray => {
+              setPhotoPeople(peopleArray);
+              //console.log(peopleArray)
+            });
+        })
+        .catch(error => {
+          console.log('Error:', error);
+        });
+    }, [description_changed])
+  );
 
+      
   useEffect(() => {
   }, [people]);
 
@@ -65,6 +69,28 @@ const TutorGetPhotoScreen = ({navigation, route}) => {
     
   );
 
+  const handleDeletePhoto = () => {
+    fetch((serverurl+'/photos/' + selected_photo.id + ''), {    
+      method: 'DELETE',
+    })
+      .then((response) => {
+        if (response.status === 200) {
+          console.log('Photo deleted successfully');
+          navigation.navigate('TutorPhotosGalery', { tutor_nickname: tutor_nickname , tutor_password: tutor_password, selected_senior: selected_senior})
+        } else {
+          console.error('Error deleting photo');
+        }
+      })
+      .catch((error) => {
+        console.error('Network error:', error);
+      });
+  };
+
+  const handlePhotoDesciptionUpload = () => {
+    //TODO: navegación a la pantalla TutorUploadPhotoDescriptionScreen
+    navigation.navigate('TutorUpdatePhotoDescription', { tutor_nickname: tutor_nickname , tutor_password: tutor_password, selected_senior: selected_senior, selected_photo})
+  };
+
   return(
     <View style={styles.container}>
       <StatusBar style="auto" />
@@ -80,7 +106,15 @@ const TutorGetPhotoScreen = ({navigation, route}) => {
 
         <View style={styles.PhotoDescriptionContainer}>
           <Text style={[styles.tutorText, styles.descriptionText]}>{description}</Text>
+          <TouchableOpacity onPress={handlePhotoDesciptionUpload} style={styles.deletePhotoBtn}>
+            <Image
+              source={require("../assets/editar.png")}
+              style={styles.butonIcon}
+            />
+            <Text style={styles.tutorText}>Editar descripción</Text>
+          </TouchableOpacity>
         </View>
+        
         
         <View style={styles.PhotoPeopleListContainer}>
           <Text style={styles.tutorText}>Personas que aparecen:</Text>
@@ -98,7 +132,7 @@ const TutorGetPhotoScreen = ({navigation, route}) => {
         </View>
       
         <View style={styles.EndScreenIconContainer}>
-          <TouchableOpacity onPress={() => navigation.navigate('ALL_DELETES_TO_DO', { selected_photo: selected_photo})} style={styles.deletePhotoBtn}>
+          <TouchableOpacity onPress={handleDeletePhoto} style={styles.deletePhotoBtn}>
             <Image
               source={require("../assets/eliminar-simbolo.png")}
               style={styles.butonIcon}

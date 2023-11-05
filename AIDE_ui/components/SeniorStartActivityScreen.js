@@ -24,20 +24,7 @@ const SeniorStartActivityScreen = ({navigation, route}) => {
   
   if (activity.name == '¿Quien es quien?'){
     if(hasPhotos){
-      // Diccionario de modelo de preguntas con los keys que queremos
-      const preguntas = {
-        hair: 'Toca con el dedo a la persona de la foto que tenga el pelo de color',
-        sunglasses: 'Toca con el dedo a la persona de la foto que lleve gafas de sol',
-        glasses: 'Toca con el dedo a la persona de la foto que lleve gafas de ver',
-        clothes: 'Toca con el dedo a la persona de la foto que lleve la ropa de color',
-        name: 'Toca con el dedo a',
-        sex: 'Toca con el dedo a alguien del sexo',
-        skin: 'Toca con el dedo a la persona de la foto que tenga la piel de color',
-        eyes: 'Toca con el dedo a la persona de la foto que tenga los ojos de color',
-        rank: 'Toca con el dedo a tu'
-      };
 
-      
       //variables que guardan el estado
       const [activity_photos, setPhotos] = useState([]); //array que contiene todas las fotos de la actividad
       const [selectedPhotosIndexes, setSelectedPhotos] = useState([]); //estado para guardar las 3 fotos seleccionadas
@@ -59,11 +46,10 @@ const SeniorStartActivityScreen = ({navigation, route}) => {
       const [peopleByPhoto, setPeopleByPhoto] = useState(0);
       const [questionsByPhoto, setQuestionsByPhoto] = useState(1);
       const [differentAnswerInArray, setDifferentAnswerInArray] = useState(null);
+      const [prevQuestion, setPrevQuestion] = useState(''); //declaramos una pregunta previa como ''
 
       const [correctClicks, setCorrectClicks] = useState(0);
       const [wrongClicks, setWrongClicks] = useState(0);
-
-      
 
       // variable que guarda el estado de las coordenadas nuevas
       const [xInferior, setXinfScaled] = useState(); 
@@ -79,8 +65,20 @@ const SeniorStartActivityScreen = ({navigation, route}) => {
       
       const [hasPhotos,setHasPhotos] = useState(true); //bool para saber si hay fotos asociadas o no
       const [threeSecs, setTimeThreeSecs] = useState(false);
-      
 
+      // Diccionario de modelo de preguntas con los keys que queremos
+      const preguntas = {
+        hair: 'Toca con el dedo a la persona de la foto que tenga el pelo de color',
+        sunglasses: 'Toca con el dedo a la persona de la foto que lleve gafas de sol',
+        glasses: 'Toca con el dedo a la persona de la foto que lleve gafas de ver',
+        clothes: 'Toca con el dedo a la persona de la foto que lleve la ropa de color',
+        name: 'Toca con el dedo a',
+        sex: 'Toca con el dedo a alguien del sexo',
+        skin: 'Toca con el dedo a la persona de la foto que tenga la piel de color',
+        eyes: 'Toca con el dedo a la persona de la foto que tenga los ojos de color',
+        rank: 'Toca con el dedo a tu'
+      };
+      
       useEffect(() => {
         const start = new Date();
         setStartTime(start);
@@ -109,18 +107,18 @@ const SeniorStartActivityScreen = ({navigation, route}) => {
         
         }, []);
       
-      //con esto se suman el numero de clicks que deberían dar para hacer la actividad de una
+      //con esto se suman el numero de clicks que deberían dar para hacer la actividad
       useEffect(() => {
         //cada vez que se cambie de fotos y se obtenga un photo people diferente
         //se ejecutará esto y sumará el num de personas a clicksSuposedToBeCorrect
-        if (photo_people[0]){
+        if (photo_people[0]){ //si ha cogido personas de una foto
           setClicksSuposedToBeCorrect(clicksSuposedToBeCorrect + photo_people[0].length)
           setPeopleByPhoto(photo_people[0].length) //nos dice cuantas personas hay en la foto y también cuantas preguntas se deben hacer
           //console.log("peopleByPhoto (las preguntas que tiene que hacer por foto):",photo_people[0].length)
         }
       }, [photo_people]);
 
-      //establecemos de manera random 3 fotos de las que tiene la actividad
+      //establecemos como de la actividad de manera random 3 fotos de las que tiene el senior
       useEffect(() => {
         if (activity_photos.length > 0 && selectedPhotosIndexes.length < 3) { 
           // Generar un número aleatorio dentro del rango del tamaño de activity_photos
@@ -263,6 +261,7 @@ const SeniorStartActivityScreen = ({navigation, route}) => {
 
       //función para generar pregunta
       function generarPregunta(pregunta,randomKey,person) {
+        //console.log("Estoy en generarPregunta")
         //redimensionamiento();
         if (randomKey === 'glasses' && person[randomKey] === false) {
           pregunta = 'Toca con el dedo a la persona de la foto que no lleve gafas de ver';
@@ -276,19 +275,18 @@ const SeniorStartActivityScreen = ({navigation, route}) => {
           const preguntaBase = preguntas[randomKey];
           const preguntaAtributo = person[randomKey];
           pregunta = preguntaBase + ' ' + preguntaAtributo;
-          console.log("pregunta: ",pregunta, "sobre la persona ", person.name, "con el index de foto ", index)
+          //console.log("pregunta: ",pregunta, "sobre la persona ", person.name, "con el index de foto ", index)
           //vamos al array que nos da la info de las personas, buscamos esa person y establecemos setPersonIndex() con el indice que nos de ese nombre
-          
-          setQuestion(pregunta);
-          setQuestionsByPhoto(questionsByPhoto+1) //esto nos incrementa cada vez que se haga una pregunta en la foto
-          //console.log("questionsByPhoto (las preguntas que ha hecho de momento):",questionsByPhoto)
         }
+        setQuestion(pregunta);
+        setQuestionsByPhoto(questionsByPhoto+1) //esto nos incrementa cada vez que se haga una pregunta en la foto
+        //console.log("questionsByPhoto (las preguntas que ha hecho de momento):",questionsByPhoto)
       }
 
       // Función para generar una nueva pregunta en base a una persona
       // Se mirará si nos quedamos con esa persona o no
       function generarNuevaPregunta(person) {
-
+        //console.log("Estoy en generarNueva pregunta.")
         // Coger una nueva randomKey
         const randomKey = getRandomKey();
         //console.log("person:",person, "estamos antes de generar la pregunta y la person es esta.")
@@ -296,7 +294,6 @@ const SeniorStartActivityScreen = ({navigation, route}) => {
         // Hacer el proceso nuevamente con la nueva randomKey
         //un array que nos dará las respuestas a la randomkeyde cada persona de la foto
         let respuestas = [];
-        //console.log("people_info[0]:::::::::::::::::::::",people_info[0])
         for (let k = 0; k < people_info[0].length; k++) {
           const person = people_info[0][k];
           //console.log("respuesta de la persona:",person[randomKey])
@@ -313,17 +310,13 @@ const SeniorStartActivityScreen = ({navigation, route}) => {
         if (analysis === 'all_diff') {  //si son todas diferentes utilizamos el person que ya teníamos
           generarPregunta(pregunta, randomKey, person);
         } else if (analysis !== 'all_diff' && analysis !== 'all_same') {  //si no son todas iguales y no son todas diferentes quiere decir que solo una será diferente
-          person = people_info[peopleIndex][analysis];
-          //console.log("analysis:",analysis)
-          setPersonIndex(analysis) //people_info[peopleIndex][analysis]
-          //console.log("person cuando solo una respuesta es diferente:" ,person)
-          //console.log("Su respuesta es ",person[randomKey])
-          //console.log("people_info[peopleIndex][analysis]: ",people_info[peopleIndex][analysis])
-          generarPregunta(pregunta, randomKey, people_info[peopleIndex][analysis]);
+          if (personIndex === analysis){ //si la persona con el unico rasgo diferente resulta que es el personIndex en el que estamos pues genial
+            generarPregunta(pregunta, randomKey, person);
+            console.log("este personInndex(",person.name,") es el del rasgo único");
+          }else{
+            generarNuevaPregunta(person); // Llamada para repetir el proceso
+          }
         } else if (analysis === 'all_same') {
-          // Repetir el proceso con una nueva randomKey
-          //console.log("A repetir!");
-          //console.log("person:",person, "estamos justo antes de llamar a generarNuevaPregunta")
           generarNuevaPregunta(person); // Llamada para repetir el proceso
         }
       }
@@ -340,7 +333,8 @@ const SeniorStartActivityScreen = ({navigation, route}) => {
     
       // Función para manejar el toque en la pantalla y avanzar al siguiente elemento del array de fotos o acabar la actividad
       const handleTouch = (event) => {
-        //incrementamos el clicks_number
+        if (people_info[peopleIndex][personIndex]){
+          //incrementamos el clicks_number
         setClicksCount(clicksCounter+1);
 
         let x, y;
@@ -348,7 +342,7 @@ const SeniorStartActivityScreen = ({navigation, route}) => {
         y = event.nativeEvent.layerY;
 
         // console.log("X:",x," Y:",y);
-        // console.log("getBounding: ",imageRef.current.getBoundingClientRect());
+        //console.log("getBounding: ",imageRef.current.getBoundingClientRect());
         // console.log("image ref: ", imageRef);
         // establecemos la refImaage
         //setImageRef(imageRef);
@@ -383,8 +377,8 @@ const SeniorStartActivityScreen = ({navigation, route}) => {
         if (x>=xInfScaled && x<=xSupScaled && y<=yInfScaled && y>=ySupScaled || wrongCount==2){
             //console.log("Click correcto :)");
             setCorrectClicks(correctClicks+1);
-            console.log("correctClicks:",correctClicks)
-            console.log("wrongClicks:",wrongClicks)
+            //console.log("correctClicks:",correctClicks)
+            //console.log("wrongClicks:",wrongClicks)
             //ponermos el wrongCount a 0 porque ha ido todo bien
             setWrongCount(0);
             //console.log("BIEN! wrongCount: ",wrongCount)
@@ -394,15 +388,15 @@ const SeniorStartActivityScreen = ({navigation, route}) => {
 
             if (people_info && people_info[peopleIndex] && personIndex < people_info[peopleIndex].length - 1 ) {
               setPersonIndex(personIndex + 1);
-              console.log("personIndex:",personIndex)
+              //console.log("personIndex:",personIndex)
             } else if (people_info && peopleIndex + 1 < people_info.length) { 
               setPeopleIndex(peopleIndex + 1);
             } else if(index < selectedPhotosIndexes.length - 1){
               setPersonIndex(0);
               setIndex(index+1);
               setQuestionsByPhoto(0);
-              console.log("personIndex:",personIndex)
-              console.log("PhotoIndex:",index)
+              //console.log("personIndex:",personIndex)
+              //console.log("PhotoIndex:",index)
             } else {
               const end = new Date();
               setEndTime(end);
@@ -411,8 +405,8 @@ const SeniorStartActivityScreen = ({navigation, route}) => {
             //click incorrecto
             
             setWrongClicks(wrongClicks+1);
-            console.log("correctClicks:",correctClicks)
-            console.log("wrongClicks:",wrongClicks)
+            //console.log("correctClicks:",correctClicks)
+            //console.log("wrongClicks:",wrongClicks)
             //incrementamos el wrongcount
             setWrongCount(wrongCount+1);
             //console.log("MAL! wrongCount: ",wrongCount)
@@ -426,7 +420,8 @@ const SeniorStartActivityScreen = ({navigation, route}) => {
               setShowLog(false);
             }, 5000);
           }
-        
+
+        }
       };
 
       //función para combertir el tiempo de juego
@@ -462,13 +457,14 @@ const SeniorStartActivityScreen = ({navigation, route}) => {
           <StatusBar style="auto" />
           
           <View style={styles.speechContainer}>
-
+          {question !== null && question !== "" && (
             <Text style={styles.speechText}>{question}</Text>
+          )}
 
-            <Image
+            {/* <Image
               source={require("../assets/sin-sonido2.png")}
               style={styles.muteIcon}
-            />
+            /> */}
           </View>
 
 
@@ -495,25 +491,27 @@ const SeniorStartActivityScreen = ({navigation, route}) => {
           </View>
 
           <View style={styles.activityWhoContainer}>
+            {question !== null && selectedPhotosIndexes !== null &&(
+              <React.Fragment>
             
-          {showLog && (
-            <Text style={styles.speechText}>
-              Pista: {logMessages[0]}
-            </Text>
-          )} 
-          {!showLog &&(
-            <TouchableOpacity
-            ref={imageRef} style={styles.activityContainerImage} onPress={handleTouch}>
-              <Image
-                id = 'photo'
-                style={styles.activityContainerImage}
-                source={{ uri: `http://localhost:8000/uploads/${selectedPhotosIndexes[index]?.photo_file}` }}
-                resizeMode="cover"
-              />
-            </TouchableOpacity>
-          )}
-          
-
+                {showLog && (
+                  <Text style={styles.speechText}>
+                    Pista: {logMessages[0]}
+                  </Text>
+                )} 
+                {!showLog &&(
+                  <TouchableOpacity
+                  ref={imageRef} style={styles.activityContainerImage} onPress={handleTouch}>
+                    <Image
+                      id = 'photo'
+                      style={styles.activityContainerImage}
+                      source={{ uri: `http://localhost:8000/uploads/${selectedPhotosIndexes[index]?.photo_file}` }}
+                      resizeMode="cover"
+                    />
+                  </TouchableOpacity>
+                )}
+              </React.Fragment>
+            )}
           </View>
         </View>
       );
@@ -539,10 +537,10 @@ const SeniorStartActivityScreen = ({navigation, route}) => {
   
             <Text style={styles.speechText}>Oh, que pena...</Text>
   
-            <Image
+            {/* <Image
               source={require("../assets/sin-sonido2.png")}
               style={styles.muteIcon}
-            />
+            /> */}
           </View>
   
   
@@ -594,13 +592,9 @@ const SeniorStartActivityScreen = ({navigation, route}) => {
     const [showLog, setShowLog] = useState(false);
     const [correctedTouches, setCorrectedTouches] = useState(0);
     const [totalClicks, setTotalClicks] = useState(1);
-
-
-
+  
     const [showSpeechText, setShowSpeechText] = useState(false); //estado para saber cuando debo poner texto en el recuadro de speechless y cuando no
 
-
-    
     //diccionario con todas las preguntas
     const preguntas = {
       name: '¿Cómo te llamas?',
@@ -636,7 +630,7 @@ const SeniorStartActivityScreen = ({navigation, route}) => {
     const places = ['Galicia','Cataluña','Aragón','Andalucía','Extremadura','Murcia','Islas Baleares','Islas Canarias','Madrid'];
 
     //array de numeros
-    const nums = [3,2,1,'Ninguno',22,9,5,4,7];
+    const nums = [3,2,1,0,22,9,5,4,7];
 
     //primero coges el id del senior 
     useEffect(() => {
@@ -979,10 +973,10 @@ const SeniorStartActivityScreen = ({navigation, route}) => {
             <Text style={styles.speechText}>{question}</Text>
           )}
           
-          <Image
+          {/* <Image
             source={require("../assets/sin-sonido2.png")}
             style={styles.muteIcon}
-          />
+          /> */}
         </View>
 
         <View style={styles.sidebarContainer}>
@@ -1009,17 +1003,17 @@ const SeniorStartActivityScreen = ({navigation, route}) => {
 
 
         <View style={styles.activityContainer}>
-        {showLog && (
-          <Text style={styles.speechText}>
-            {logMessages[0]}
-          </Text>
-        )}
-        {!showLog && allAnswers.map((ans, index) => (
-          <TouchableOpacity key={index} onPress={() => handleTouch(ans)}>
-            <Text style={styles.answerButtonText}>{ans}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+          {showLog && (
+            <Text style={styles.speechText}>
+              {logMessages[0]}
+            </Text>
+          )}
+          {!showLog && allAnswers.map((ans, index) => (
+            <TouchableOpacity style={styles.answerTouchable} key={index} onPress={() => handleTouch(ans)}>
+              <Text style={styles.answerButtonText, styles.speechText}>{ans}</Text> 
+            </TouchableOpacity>
+          ))}
+        </View>
           
       </View>
     );

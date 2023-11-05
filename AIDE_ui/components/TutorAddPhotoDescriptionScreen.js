@@ -64,7 +64,9 @@ const TutorAddPhotoDescriptionScreen = ({navigation, route}) => {
     <View style={styles.container}>
       <StatusBar style="auto" />
 
+    <View>
       <input
+        style={{ marginBottom: '15%' }}
         id='image-file'
         type="file"
         name="selected_file"
@@ -75,7 +77,8 @@ const TutorAddPhotoDescriptionScreen = ({navigation, route}) => {
           setImageUri(fileUrl);
         }}
       />
-
+    </View>
+    
       {imageUri ? (
         <Image source={{ uri: imageUri }} style={styles.image} />
       ) : null}

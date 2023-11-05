@@ -28,8 +28,9 @@ const SeniorWelcomeScreen = ({navigation, route}) => {
     <View style={styles.container}>
       <StatusBar style="auto" />
 
-      <Text>Bienvenido/a {senior_name}!</Text>
-      <Text>Empezamos en {count > 0 ? `${count}...` : ''}</Text>
+      <Text style={styles.speechText}>Bienvenido/a {senior_name}!</Text>
+      <Text style={styles.speechText}>Empezamos en {count > 0 ? `${count}...` : ''}</Text>
+      
 
     </View>
   );

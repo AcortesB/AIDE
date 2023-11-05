@@ -9,38 +9,42 @@ import { serverurl } from '../config.js'
 
 const TutorHomeScreen = ({navigation, route}) => {
   
-    const { nickname, password, readSeniors } = route.params; //al principio readSenior estará undefined, solo será defined cuando lleguen de añadir u senior
+    const { nickname, password, seniors_changed} = route.params; //al principio readSenior estará undefined, solo será defined cuando lleguen de añadir u senior
+    console.log("seniors_changed en el home:", seniors_changed)
     const [names, setNames] = useState([]);
     const [selectedSenior, setSelectedSenior] = useState({ name: null, senior_id: null });
+    
 
-    useEffect(() => {
-      fetch(serverurl+'/tutors/' + nickname + '/seniors') // consigo los seniors del tutor en cuestión
-        .then(response => response.json())
-        .then(seniors => {
-          console.log(seniors)
-          const namesPromises = seniors.map(senior => {
-            const senior_id = senior.id
-            return fetch(serverurl+'/seniors/' + senior.id)
-              .then(response => response.json())
-              .then(name => ({ name, senior_id })) // Crear el par con name y senior_id
+    useFocusEffect(
+      React.useCallback(() => {
+        fetch(serverurl+'/tutors/' + nickname + '/seniors') // consigo los seniors del tutor en cuestión
+          .then(response => response.json())
+          .then(seniors => {
+            console.log(seniors)
+            const namesPromises = seniors.map(senior => {
+              const senior_id = senior.id
+              return fetch(serverurl+'/seniors/' + senior.id)
+                .then(response => response.json())
+                .then(name => ({ name, senior_id })) // Crear el par con name y senior_id
+                .catch(error => {
+                  console.log('Error:', error);
+                });
+                console.log(senior_id);
+            });
+    
+            Promise.all(namesPromises)
+              .then(seniorNames => {
+                setNames(seniorNames); //establecemos names con lo que nos devuelvan las promises de haber mapeado
+              })
               .catch(error => {
                 console.log('Error:', error);
               });
-              console.log(senior_id);
+          })
+          .catch(error => {
+            console.log('Error:', error);
           });
-  
-          Promise.all(namesPromises)
-            .then(seniorNames => {
-              setNames(seniorNames); //establecemos names con lo que nos devuelvan las promises de haber mapeado
-            })
-            .catch(error => {
-              console.log('Error:', error);
-            });
-        })
-        .catch(error => {
-          console.log('Error:', error);
-        });
-      }, []);
+      }, [seniors_changed])
+    );
   
     const handleSeniorSelection = (seniorName, seniorId) => {
       setSelectedSenior({ name: seniorName, senior_id: seniorId }); // Establecemos setSelectedSenior con el par de name y senior_id
@@ -93,6 +97,7 @@ const TutorHomeScreen = ({navigation, route}) => {
                 tutor_nickname: nickname,
                 tutor_password: password,
                 selected_senior: selectedSenior,
+                seniors_changed: seniors_changed
               });
             }
           }}

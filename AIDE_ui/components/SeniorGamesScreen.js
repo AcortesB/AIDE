@@ -37,7 +37,7 @@ useEffect(() => {
         style={styles.galleryImage}
       />
       </View>
-      <Text style={styles.galleryImageText}>{item.name}</Text>
+      <Text style={[styles.scrollViewActivityText, styles.speechText]}>{item.name}</Text>
     </TouchableOpacity>
   );
 
@@ -49,10 +49,10 @@ useEffect(() => {
       <View style={styles.speechContainer}>
         <Text style={styles.speechText}>Escoge un juego</Text>
         
-        <Image
+        {/* <Image
           source={require("../assets/sin-sonido2.png")}
           style={styles.muteIcon}
-        />
+        /> */}
       </View>
 
       <View style={styles.sidebarContainer}>

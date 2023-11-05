@@ -122,155 +122,171 @@ const TutorAddSeniorScreen = ({navigation, route}) => {
 
   return (
     <View style={styles.container}> 
-      
-      <Image style={styles.image} 
-        source={require("../assets/AIDE_blue_big.png")} 
-      />
-
       <StatusBar style="auto" />
-      <View style={styles.inputView}>
-        <TextInput
-          style={styles.TextInput}
-          placeholder="Nombre del Senior nuevo."
-          placeholderTextColor="#003f5c"
-          onChangeText={(name) => setName(name)}
-        />
-      </View>
+      <Text style={[styles.textContainer2, styles.tutorText, { fontWeight: 'bold' }]}>
+        Datos del nuevo senior
+      </Text>
+      <ScrollView style={styles.addSeniorScrollView}>
+        <Text style={[styles.textContainer2, styles.tutorText]}>Ingrese el nombre del senior nuevo.</Text>
+        <View style={styles.inputView}>
+          <TextInput
+            style={styles.TextInput}
+            placeholder="Ejemplo: Antonia"
+            placeholderTextColor="#003f5c"
+            onChangeText={(name) => setName(name)}
+          />
+        </View>
 
-      <View style={styles.inputView}>
-        <TextInput
-          style={styles.TextInput}
-          placeholder="Nombre de usuario del Senior nuevo."
-          placeholderTextColor="#003f5c"
-          onChangeText={(nickname) => setNickname(nickname)} 
-        />
-      </View>
+        <Text style={[styles.textContainer2, styles.tutorText]}>Ingrese el nombre de usuario del senior nuevo.</Text>
+        <View style={styles.inputView}>
+          <TextInput
+            style={styles.TextInput}
+            placeholder="Ejemplo: ANTR60"
+            placeholderTextColor="#003f5c"
+            onChangeText={(nickname) => setNickname(nickname)} 
+          />
+        </View>
 
-      <View style={styles.inputView}>
-        <TextInput
-          style={styles.TextInput}
-          placeholder="Contraseña del Senior nuevo."
-          placeholderTextColor="#003f5c"
-          secureTextEntry={true}
-          onChangeText={(password) => setPassword(password)}
-        />        
-      </View>
+        <Text style={[styles.textContainer2, styles.tutorText]}>Ingrese la contraseña del senior nuevo.</Text>
+        <View style={styles.inputView}>
+          <TextInput
+            style={styles.TextInput}
+            placeholder="Contraseña"
+            placeholderTextColor="#003f5c"
+            secureTextEntry={true}
+            onChangeText={(password) => setPassword(password)}
+          />        
+        </View>
 
-      <View style={styles.inputView}>
-        <Picker
-          selectedValue={sex || ""}
-          style={[styles.TextInput, styles.tutorText, { backgroundColor: "#abe5fa", borderWidth: 0, borderColor: "transparent", borderRadius: 30 }]}
-          onValueChange={(itemValue) => setSex(itemValue)}
-        >
-          <Picker.Item label="Seleccione el sexo." value="" />
-          {sexOptions.map((option, index) => (
-            <Picker.Item key={index} label={option} value={option} />
-          ))}
-        </Picker>
-      </View>
+        <Text style={[styles.textContainer2, styles.tutorText]}>Seleccione el sexo del senior nuevo.</Text>
+        <View style={styles.inputView}>
+          <Picker
+            selectedValue={sex || ""}
+            style={[styles.TextInput, styles.tutorText, { backgroundColor: "#abe5fa", borderWidth: 0, borderColor: "transparent", borderRadius: 30 }]}
+            onValueChange={(itemValue) => setSex(itemValue)}
+          >
+            <Picker.Item label="sexo" value="" />
+            {sexOptions.map((option, index) => (
+              <Picker.Item key={index} label={option} value={option} />
+            ))}
+          </Picker>
+        </View>
 
-      <View style={styles.inputView}>
-        <TextInput
-          style={styles.TextInput}
-          placeholder="Año de nacimiento."
-          placeholderTextColor="#003f5c"
-          onChangeText={(birth_year) => setBirthYear(birth_year)} 
-        />
-      </View>
+        <Text style={[styles.textContainer2, styles.tutorText]}>Ingrese el año de nacimiento del senior nuevo.</Text>
+        <View style={styles.inputView}>
+          <TextInput
+            style={styles.TextInput}
+            placeholder="Ejemplo: 1960"
+            placeholderTextColor="#003f5c"
+            onChangeText={(birth_year) => setBirthYear(birth_year)} 
+          />
+        </View>
 
-      <View style={styles.inputView}>
-        <TextInput
-          style={styles.TextInput}
-          placeholder="Lugar de nacimiento."
-          placeholderTextColor="#003f5c"
-          onChangeText={(birth_place) => setBirthPlace(birth_place)} 
-        />
-      </View>
+        <Text style={[styles.textContainer2, styles.tutorText]}>Ingrese el lugar de nacimiento del senior nuevo.</Text>
+        <View style={styles.inputView}>
+          <TextInput
+            style={styles.TextInput}
+            placeholder="Ejemplo: Madrid"
+            placeholderTextColor="#003f5c"
+            onChangeText={(birth_place) => setBirthPlace(birth_place)} 
+          />
+        </View>
 
-      <View style={styles.inputView}>
-        <TextInput
-          style={styles.TextInput}
-          placeholder="Número total de hijos e hijas."
-          placeholderTextColor="#003f5c"
-          onChangeText={(descendants_num) => setDescendantsNum(descendants_num)} 
-        />
-      </View>
+        <Text style={[styles.textContainer2, styles.tutorText]}>Ingrese el número total de descendentes del senior nuevo.</Text>
+        <View style={styles.inputView}>
+          <TextInput
+            style={styles.TextInput}
+            placeholder="Ejemplo: 3"
+            placeholderTextColor="#003f5c"
+            onChangeText={(descendants_num) => setDescendantsNum(descendants_num)} 
+          />
+        </View>
 
-      <View style={styles.inputView}>
-        <TextInput
-          style={styles.TextInput}
-          placeholder="Número de hijos varones."
-          placeholderTextColor="#003f5c"
-          onChangeText={(sons_num) => setSonsNum(sons_num)} 
-        />
-      </View>
+        <Text style={[styles.textContainer2, styles.tutorText]}>Ingrese el número de hijos varones del senior.</Text>
+        <View style={styles.inputView}>
+          <TextInput
+            style={styles.TextInput}
+            placeholder="Ejemplo: 2"
+            placeholderTextColor="#003f5c"
+            onChangeText={(sons_num) => setSonsNum(sons_num)} 
+          />
+        </View>
 
-      <View style={styles.inputView}>
-        <TextInput
-          style={styles.TextInput}
-          placeholder="Número de hijas."
-          placeholderTextColor="#003f5c"
-          onChangeText={(daughters_num) => setDaughtersNum(daughters_num)} 
-        />
-      </View>
+        <Text style={[styles.textContainer2, styles.tutorText]}>Ingrese el número de hijas del senior.</Text>
+        <View style={styles.inputView}>
+          <TextInput
+            style={styles.TextInput}
+            placeholder="Ejemplo: 1"
+            placeholderTextColor="#003f5c"
+            onChangeText={(daughters_num) => setDaughtersNum(daughters_num)} 
+          />
+        </View>
 
-      <View style={styles.inputView}>
-        <TextInput
-          style={styles.TextInput}
-          placeholder="Número total de hermanos y hermanas."
-          placeholderTextColor="#003f5c"
-          onChangeText={(siblings_num) => setSiblingsNum(siblings_num)} 
-        />
-      </View>
+        <Text style={[styles.textContainer2, styles.tutorText]}>Ingrese el número total de hermanos y hermanas del senior.</Text>
+        <View style={styles.inputView}>
+          <TextInput
+            style={styles.TextInput}
+            placeholder="Ejemplo: 4"
+            placeholderTextColor="#003f5c"
+            onChangeText={(siblings_num) => setSiblingsNum(siblings_num)} 
+          />
+        </View>
 
-      <View style={styles.inputView}>
-        <TextInput
-          style={styles.TextInput}
-          placeholder="Número de hermanos varones."
-          placeholderTextColor="#003f5c"
-          onChangeText={(brothers_num) => setBrothersNum(brothers_num)} 
-        />
-      </View>
+        <Text style={[styles.textContainer2, styles.tutorText]}>Ingrese el número de hermanos varones del senior.</Text>
+        <View style={styles.inputView}>
+          <TextInput
+            style={styles.TextInput}
+            placeholder="Ejemplo: 2"
+            placeholderTextColor="#003f5c"
+            onChangeText={(brothers_num) => setBrothersNum(brothers_num)} 
+          />
+        </View>
 
-      <View style={styles.inputView}>
-        <TextInput
-          style={styles.TextInput}
-          placeholder="Número de hermanas."
-          placeholderTextColor="#003f5c"
-          onChangeText={(sisters_num) => setSistersNum(sisters_num)} 
-        />
-      </View>
+        <Text style={[styles.textContainer2, styles.tutorText]}>Ingrese el número de hermanas del senior.</Text>
+        <View style={styles.inputView}>
+          <TextInput
+            style={styles.TextInput}
+            placeholder="Ejemplo: 2"
+            placeholderTextColor="#003f5c"
+            onChangeText={(sisters_num) => setSistersNum(sisters_num)} 
+          />
+        </View>
 
-      <View style={styles.inputView}>
-        <TextInput
-          style={styles.TextInput}
-          placeholder="Nombre de la pareja."
-          placeholderTextColor="#003f5c"
-          onChangeText={(partner_name) => setPartnerName(partner_name)} 
-        />
-      </View>
+        <Text style={[styles.textContainer2, styles.tutorText]}>Ingrese el nombre de la pareja del senior.</Text>
+        <View style={styles.inputView}>
+          <TextInput
+            style={styles.TextInput}
+            placeholder="Ejemplo: Ramón"
+            placeholderTextColor="#003f5c"
+            onChangeText={(partner_name) => setPartnerName(partner_name)} 
+          />
+        </View>
 
-      <View style={styles.inputView}>
-        <TextInput
-          style={styles.TextInput}
-          placeholder="Nombre de la madre."
-          placeholderTextColor="#003f5c"
-          onChangeText={(mother_name) => setMotherName(mother_name)} 
-        />
-      </View>
+        <Text style={[styles.textContainer2, styles.tutorText]}>Ingrese el nombre de la madre del senior.</Text>
+        <View style={styles.inputView}>
+          <TextInput
+            style={styles.TextInput}
+            placeholder="Ejemplo: Carmen"
+            placeholderTextColor="#003f5c"
+            onChangeText={(mother_name) => setMotherName(mother_name)} 
+          />
+        </View>
 
-      <View style={styles.inputView}>
-        <TextInput
-          style={styles.TextInput}
-          placeholder="Nombre del padre."
-          placeholderTextColor="#003f5c"
-          onChangeText={(father_name) => setFatherName(father_name)} 
-        />
-      </View>
+        <Text style={[styles.textContainer2, styles.tutorText]}>Ingrese el nombre del padre del senior.</Text>
+        <View style={styles.inputView}>
+          <TextInput
+            style={styles.TextInput}
+            placeholder="Ejemplo: Luís"
+            placeholderTextColor="#003f5c"
+            onChangeText={(father_name) => setFatherName(father_name)} 
+          />
+        </View>
+        
+        <TouchableOpacity onPress={handleSeniorSignup} style={styles.loginBtn}>
+          <Text style={styles.tutorText}>Crear nuevo Senior</Text>
+        </TouchableOpacity>
+      </ScrollView>
       
-      <TouchableOpacity onPress={handleSeniorSignup} style={styles.loginBtn}>
-        <Text style={styles.tutorText}>Crear nuevo Senior</Text>
-      </TouchableOpacity>
 
     </View>
   );

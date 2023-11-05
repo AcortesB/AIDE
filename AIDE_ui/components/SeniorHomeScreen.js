@@ -8,6 +8,15 @@ import { serverurl } from '../config.js'
 
 const SeniorHomeScreen = ({navigation, route}) => {
   const { senior_nickname, senior_password, senior_name } = route.params;
+  
+  const handleSpeech = () => {
+    let utterance = new SpeechSynthesisUtterance();
+    utterance.text = "Escoge un tipo de actividad";
+    utterance.voice = window.speechSynthesis.getVoices()[63];
+    window.speechSynthesis.speak(utterance);
+  }
+
+ handleSpeech();
 
   return (
     <View style={styles.container}>
@@ -17,10 +26,13 @@ const SeniorHomeScreen = ({navigation, route}) => {
       <View style={styles.speechContainer}>
         <Text style={styles.speechText}>Escoge un tipo de actividad</Text>
         
-        <Image
-          source={require("../assets/sin-sonido2.png")}
-          style={styles.muteIcon}
-        />
+        {/* <TouchableOpacity style={styles.muteIcon} onPress={handleSpeech}>
+          <Image
+            source={require("../assets/sin-sonido2.png")}
+            style={styles.muteIcon}
+          />
+        </TouchableOpacity> */}
+        
       </View>
 
       <View style={styles.sidebarContainer}>
@@ -51,17 +63,17 @@ const SeniorHomeScreen = ({navigation, route}) => {
         style={styles.homeTouchableActivityContainerImage}
         onPress={() => navigation.navigate('SeniorGames', { senior_nickname: senior_nickname, senior_password: senior_password , senior_name: senior_name })}>
           <Image style={styles.homeActivityContainerImage} source={require("../assets/rompecabezas.png")}></Image>
+          <Text style={[styles.homeTouchableActivityContainerImageText, styles.speechText, { textAlign: 'center' }]}>Juegos</Text>
         </TouchableOpacity>
         
-        <Text style={styles.homeTouchableActivityContainerImageText}>Juegos</Text>
-
         <TouchableOpacity 
         style={styles.homeTouchableActivityContainerImage}
         onPress={() => navigation.navigate('SeniorFamily', { senior_nickname: senior_nickname, senior_password: senior_password , senior_name: senior_name })}>
           <Image style={styles.homeActivityContainerImage} source={require("../assets/familia2.png")}></Image>
+          <Text style={[styles.homeTouchableActivityContainerImageText, styles.speechText, { textAlign: 'center' }]}>Recuerdos y família</Text>
         </TouchableOpacity>
         
-        <Text style={styles.homeTouchableActivityContainerImageText}>Recuerdos y família</Text>
+        
       </View>
     </View>
   );

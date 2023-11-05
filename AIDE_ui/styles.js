@@ -13,7 +13,6 @@ export const styles = StyleSheet.create({
     justifyContent: "center",
   },
 
-
   mobileScrollView: {
     flex: 1,
     marginVertical: 70,
@@ -71,6 +70,35 @@ export const styles = StyleSheet.create({
     aspectRatio: 1, // Mantener el aspect ratio original de la imagen
   },
 
+  circle: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: 'red',
+    position: 'absolute'
+  },
+
+  line: {
+    position: 'absolute',
+    borderWidth: 1,
+    borderColor: 'red',
+  },
+
+  circle_green: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: 'green',
+    position: 'absolute'
+  },
+
+  circle_blue: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: 'blue',
+    position: 'absolute'
+  },
   speechContainer: {
     flex: 1,
     backgroundColor: '#eeeeee',
@@ -149,9 +177,23 @@ export const styles = StyleSheet.create({
   },
 
   speechText: {
-    fontSize: 30,
+    fontSize: 55,
     fontFamily: 'Arial',
     resizeMode: 'contain'
+  },
+
+  speechTextWIW: {
+    fontSize: 55,
+    fontFamily: 'Arial',
+    resizeMode: 'contain',
+    width: "70%"
+  },
+
+  scrollViewActivityText: {
+    fontSize: 45,
+    fontFamily: 'Arial',
+    resizeMode: 'contain',
+    marginLeft: 50
   },
 
   photoActivityShownTouchable: {
@@ -226,21 +268,60 @@ export const styles = StyleSheet.create({
     top: "0%"
   },
 
-  buttonTouchable: {
-    width: "100%",
-    height: "100%",
-    resizeMode: 'contain',
-    left: "0%",
-    top: "0%"
+  answerTouchable: {
+    width: '20%', // Establece el ancho al 20% del espacio disponible (4 elementos por fila si la pantalla es lo suficientemente ancha)
+    aspectRatio: 1, // Esto hace que el elemento sea cuadrado
+    alignItems: 'center', // Centra el contenido verticalmente
+    justifyContent: 'center', // Centra el contenido horizontalmente
+    borderWidth: 1, // Añade un borde
+    borderColor: 'white', // Establece el color del borde en blanco
+    borderRadius: 30, // Establece el radio de borde para que las puntas sean redondas
+    backgroundColor: '#eeeeee', // Establece el color de fondo en blanco
+    // Puedes ajustar el valor de 'borderRadius' según tus preferencias
   },
 
+  customFileInputButton: {
+    backgroundColor: 'blue', // Cambia el color de fondo según tus preferencias
+    color: 'white', // Cambia el color del texto según tus preferencias, // Añade relleno según tus preferencias
+    borderRadius: '5px', // Añade bordes redondeados según tus preferencias
+    //cursor: 'pointer', // Cambia el cursor al pasar el ratón por encima
+  },
+
+  video: {
+    width: "100%",
+    height: 'auto',
+    border: '4px solid black'
+  },
+
+  buttonTouchable: {
+    width: "30%",
+    height: "0%",
+    resizeMode: 'contain',
+    left: "50%",
+    top: "100%",
+    marginTop: "100%"
+  },
+
+  textContainer: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    alignItems: 'flex-end',
+    marginRight: '25%', // Esto alinea el texto al 25% hacia la derecha
+  },
 
   homeTouchableActivityContainerImageText: {
     fontSize: 30,
     fontFamily: 'Arial',
-    resizeMode: 'contain'
+    resizeMode: 'contain',
+    fontWeight: 'bold'
   },
 
+  textContainer2: {
+    marginBottom: "5%", // Ajusta este valor según tu preferencia
+    marginLeft: "7%",
+    marginRight: "7%",
+    alignItems: 'center',
+  },
 
   galleryItem: {
     flexDirection: 'row',
@@ -285,6 +366,16 @@ export const styles = StyleSheet.create({
     paddingHorizontal: "15%",
   },
 
+  addSeniorScrollView: {
+    marginVertical: 70,
+    //flex: 1,
+    position: 'absolute',
+    backgroundColor: "#72d9fe",
+    top: "0%",
+    left: "12.5%",
+    bottom: 0,
+    right: 0,
+  },
 
   sidebarIcon1: {
     position: 'absolute',
@@ -420,6 +511,16 @@ export const styles = StyleSheet.create({
     bottom: "5%"
   },
 
+  deleteSeniorBtn: {
+    width: "80%",
+    borderRadius: 25,
+    height: 50,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 10,
+    bottom: "5%"
+  },
+
 
   listoBtn: {
     width: "80%",
@@ -437,8 +538,8 @@ export const styles = StyleSheet.create({
     width: "60%",
     top: "30%",
     transform: [{ translateY: "-50%" }],
-    alignItems: "left",
-    justifyContent: "left",
+    alignItems: "center",
+    justifyContent: "center",
     resizeMode: 'contain'
   },
 
@@ -460,6 +561,22 @@ export const styles = StyleSheet.create({
     left: 0,
     top: 0
   },
+
+  butonIconRecovery: {
+    width: "10%",
+    height: "10%",
+    resizeMode: 'contain',
+    left: 0,
+    top: 0
+  },
+
+  
+  dots: {
+    fontSize: 32,
+    fontFamily: 'Arial',
+    resizeMode: 'contain',
+  },
+
   tutorText: {
     top: "10%",
     fontSize: 16,
@@ -489,7 +606,6 @@ image: {
     marginBottom: 40
   },
 
-
   inputView: {
     backgroundColor: "#abe5fa",
     borderRadius: 30,
@@ -498,7 +614,6 @@ image: {
     marginBottom: 20,
     alignItems: "left", // en el movil no le gusta y lo quiere 'center'
   },
-
 
   TextInput: {
     height: 50,
